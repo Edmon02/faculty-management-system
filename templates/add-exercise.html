@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Student List{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+               <div class="content container-fluid">
+
+                    <div class="page-header">
+                         <div class="row align-items-center">
+                              <div class="col-sm-12">
+                                   <div class="page-sub-header">
+                                        <h3 class="page-title">Add Exercise</h3>
+                                        <ul class="breadcrumb">
+                                             <li class="breadcrumb-item"><a href="/exercises">Exercises</a></li>
+                                             <li class="breadcrumb-item active">Add Exercise</li>
+                                        </ul>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+
+                    <div class="row">
+                         <div class="col-sm-12">
+                              <div class="card comman-shadow">
+                                   <div class="card-body">
+                                        <form method="POST" action="{{ url_for('addExercise') }}"
+                                             enctype="multipart/form-data">
+
+                                             <div class="row">
+                                                  <div class="col-12">
+                                                       <h5 class="form-title student-info">Exercise Information <span><a
+                                                                      href="javascript:;"><i
+                                                                           class="feather-more-vertical"></i></a></span>
+                                                       </h5>
+                                                  </div>
+                                                  <div class="col-12 col-sm-4">
+                                                       <div class="form-group local-forms">
+                                                            <label>Subject Name <span
+                                                                      class="login-danger">*</span></label>
+                                                            <input class="form-control" type="text" name="subject_name"
+                                                                 placeholder="Enter Subject Name">
+                                                       </div>
+                                                  </div>
+                                                  <div class="col-12 col-sm-4">
+                                                       <div class="form-group local-forms">
+                                                            <label>Group Name <span class="login-danger">*</span></label>
+                                                            <input class="form-control" type="text" name="group_name"
+                                                                 placeholder="Enter Group Name">
+                                                       </div>
+                                                  </div>
+                                                  <div class="col-12 col-sm-4">
+                                                       <div class="form-group local-forms calendar-icon">
+                                                            <label>End Time <span
+                                                                 class="login-danger">*</span></label>
+                                                                 <input class="form-control datetimepicker" type="text"
+                                                                 name="end_time" placeholder="Temporary time">
+                                                       </div>
+                                                  </div>
+                                                  <div class="col-12">
+                                                       <div class="form-group local-forms">
+                                                            <label>Text <span class="login-danger">*</span></label>
+                                                            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="messenge"></textarea>
+                                                       </div>
+                                                  </div>
+                                                  <div class="col-12 col-sm-4">
+                                                       <div class="form-group students-up-files">
+                                                            <label>Upload File 10mg</label>
+                                                            <div class="uplod">
+                                                                 <label class="file-upload image-upbtn mb-0">
+                                                                      Choose File <input type="file" name="file" accept="application/pdf, ,application/msword">
+                                                                 </label>
+                                                            </div>
+                                                       </div>
+                                                  </div>
+
+                                                  <div class="col-12">
+                                                       <div class="student-submit">
+                                                            <button type="submit"
+                                                                 class="btn btn-primary">Submit</button>
+                                                       </div>
+                                                  </div>
+                                             </div>
+                                        </form>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               </div>
+          </div>
+
+{% endblock %}
