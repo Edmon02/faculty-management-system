@@ -65,46 +65,58 @@
 
                               <table
                                    class="table border-0 star-student table-hover table-center mb-0 datatable table-striped">
+
                                    <thead class="student-thread">
                                         <tr>
-                                             <th>
-                                                  <div class="form-check check-tables">
-                                                       <input class="form-check-input" type="checkbox"
-                                                            value="something" />
-                                                  </div>
-                                             </th>
+                                             {% if session['is_Lecturer'] == 'False' %}
+                                                  <th>
+                                                       <div class="form-check check-tables">
+                                                            <input value="" class="form-check-input" type="checkbox"
+                                                                 id="selectAllCheckbox">
+                                                       </div>
+                                                  </th>
+                                             {% endif %}
                                              <th>Subject Name</th>
                                              <th>Text</th>
                                              <th>Group Name</th>
                                              <th>File</th>
                                              <th>End Time</th>
+                                             {% if session['is_Lecturer'] == 'True' %}
                                              <th class="text-end">Action</th>
+                                             {% endif %}
                                         </tr>
                                    </thead>
                                    <tbody>
                                         {% for file in data %}
-                                             <tr>
+                                        <tr>
+                                             {% if session['type'] == 'student' %}
                                                   <td>
                                                        <div class="form-check check-tables">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                 value="something" />
+                                                            {% if file['checkType'] %}
+                                                                 <input id="checkboxToActivate" class="form-check-input"
+                                                                 type="checkbox" value="{{file['id']}}" disabled />
+                                                            {% else %}
+                                                                 <input id="checkboxToActivate" class="form-check-input"
+                                                                 type="checkbox" value="{{file['id']}}" />
+                                                            {% endif %}
                                                        </div>
                                                   </td>
-                                                  <td>{{file['subject_name']}}</td>
-                                                  <td>{{file['messenge']}}</td>
-                                                  <td>{{file['group_name']}}</td>
-                                                  <td>
+                                             {% endif %}
+                                             {% if session['is_Lecturer'] == 'False' %}
+                                             {% endif %}
+                                             <td>{{file['subject_name']}}</td>
+                                             <td>{{file['messenge']}}</td>
+                                             <td>{{file['group_name']}}</td>
+                                             <td>
                                                   {% if file['file_type'] in ('.doc', '.docx') %}
-                                                       <img src="../static/css/assets/img/icons/doc.png"
-                                                            style="
+                                                  <img src="../static/css/assets/img/icons/doc.png" style="
                                                                  width: 20px;
                                                                  height: 20px;
                                                                  align-items: cneter;
                                                                  margin: 0;
                                                             ">
                                                   {% elif file['file_type'] in ('.pdf') %}
-                                                       <img src="../static/css/assets/img/icons/pdf.png"
-                                                            style="
+                                                  <img src="../static/css/assets/img/icons/pdf.png" style="
                                                                  width: 20px;
                                                                  height: 20px;
                                                                  align-items: cneter;
@@ -113,30 +125,126 @@
                                                   {% endif %}
                                                   <a href="{{ url_for('show_file', filename=file['file_name']) }}"
                                                        target="_blank">{{ file['file_name'][:10] }}...</a>
-                                                  </td>
-                                                  <td>{{file['expiry_time'][:10]}}</td>
-                                                  <td class="text-end">
-                                                       <div class="actions">
-                                                            <a href="javascript:;"
-                                                                 class="btn btn-sm bg-success-light me-2">
-                                                                 <i class="feather-eye"></i>
-                                                            </a>
-                                                            <a href=""
-                                                                 class="btn btn-sm bg-danger-light">
-                                                                 <i class="feather-edit"></i>
-                                                            </a>
-                                                       </div>
-                                                  </td>
-                                             </tr>
+                                             </td>
+                                             <td>{{file['expiry_time'][:10]}}</td>
+                                             {% if session['is_Lecturer'] == 'True' %}
+                                             <td class="text-end">
+                                                  <div class="actions">
+                                                       <a href="{{ url_for('editExercise', id=file['id']) }}"
+                                                            class="btn btn-sm bg-danger-light me-2">
+                                                            <i class="feather-edit"></i>
+                                                       </a>
+                                                       <a href="{{ url_for('deleteExercise', id=file['id']) }}"
+                                                            class="btn btn-sm bg-danger-light">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                       </a>
+                                                  </div>
+                                             </td>
+                                             {% endif %}
+
+                                        </tr>
                                         {% endfor %}
                                    </tbody>
                               </table>
-
+                              {% if session['type'] == 'student' %}
+                              <button id="sendToWaitRoom" class="btn btn-primary">Send to WaitRoom</button>
+                              {% endif %}
                          </div>
                     </div>
                </div>
           </div>
      </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- JavaScript for "Select All" functionality -->
+<script>
+     document.getElementById('selectAllCheckbox').addEventListener('change', function (event) {
+          const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]:not(:disabled)');
+          checkboxes.forEach(function (checkbox) {
+               checkbox.checked = event.target.checked;
+          });
+     });
+</script>
+
+<script>
+     // document.addEventListener('DOMContentLoaded', function () {
+     //         const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+     //         const tbodyCheckboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+
+     //         // Function to update the state of the selectAllCheckbox
+     //         function updateSelectAllCheckbox() {
+     //             const allDisabled = Array.from(tbodyCheckboxes).every(checkbox => checkbox.disabled);
+     //             selectAllCheckbox.disabled = allDisabled;
+     //         }
+
+     //         // Add event listeners to tbody checkboxes to update the selectAllCheckbox state
+     //         tbodyCheckboxes.forEach(function (checkbox) {
+     //             checkbox.addEventListener('change', updateSelectAllCheckbox);
+     //         });
+
+     //         // Add an event listener to the selectAllCheckbox
+     //         selectAllCheckbox.addEventListener('change', function (event) {
+     //             tbodyCheckboxes.forEach(function (checkbox) {
+     //                 if (!checkbox.disabled) {
+     //                     checkbox.checked = event.target.checked;
+     //                 }
+     //             });
+     //         });
+
+     //         // Call the initial update to set the selectAllCheckbox state
+     //         updateSelectAllCheckbox();
+     //     });
+
+     // JavaScript code to handle the button/icon click event
+
+     document.getElementById('sendToWaitRoom').addEventListener('click', function () {
+          // Collect selected checkboxes' values (e.g., file IDs)
+          const selectedCheckboxes = document.querySelectorAll('tbody input[type="checkbox"]:checked');
+
+          // Create an array to store the selected values
+          const selectedValues = [];
+
+          // Check if any of the selected checkboxes were previously selected
+          const previouslySelected = Array.from(selectedCheckboxes).some(checkbox => {
+               const value = checkbox.value;
+               if (selectedValues.includes(value)) {
+                    alert('You cannot select the same checkpoint again.');
+                    return true; // Prevent further processing
+               }
+               selectedValues.push(value);
+               return false;
+          });
+
+          if (previouslySelected) {
+               return; // Do not proceed if a previously selected checkpoint is selected again
+          }
+
+          // Make an AJAX request to the Flask route
+          fetch('/waitroom', {
+               method: 'POST',
+               headers: {
+                    'Content-Type': 'application/json',
+               },
+               body: JSON.stringify({ selectedIds: selectedValues }),
+          })
+               .then(response => {
+                    if (response.ok) {
+                         // Handle success, e.g., redirect to WaitRoom or show a success message
+                         window.location.href = '/waitroom'; // Redirect to WaitRoom
+                    } else {
+                         // Handle errors, e.g., show an error message
+                         console.error('Error:', response.statusText);
+                    }
+               })
+               .catch(error => {
+                    console.error('Network error:', error);
+               });
+     })
+
+
+</script>
 
 {% endblock %}

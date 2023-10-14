@@ -1,0 +1,98 @@
+:root {
+  --p: 0;
+  --r: 0px;
+  --x: 0px;
+  --y: 0px;
+}
+
+html, body, div, ::after {
+  display: grid;
+}
+
+html {
+  height: 100%;
+}
+
+div, ::before, ::after {
+  grid-area: 1/ 1;
+}
+
+body {
+  place-items: center;
+  background: #171717;
+  font: 900 6em cousine;
+}
+
+body::before {
+  padding: calc(2.5em + 0.2 * 2.5em);
+  border-radius: 0.2 * 2.5em;
+  box-shadow: 4px 4px 13px;
+  background: linear-gradient(-45deg, #3e1c33, #814623);
+  content: '';
+}
+
+.load {
+  counter-reset: p var(--p);
+  mix-blend-mode: lighten;
+  animation: p 6s linear infinite;
+}
+
+.load::before,
+.load::after {
+  background: linear-gradient(-45deg, #d196dd, #fd954e);
+}
+
+.load::before {
+  --x: 0.1em;
+  --y: 0.1em;
+  --r: calc(100% - 0.5em);
+  --rond: red calc(0.1em - 1px), #0000 0.1em;
+  --mask: radial-gradient(circle at var(--x) var(--y), var(--rond)), 
+    radial-gradient(closest-side, #0000 var(--r), red calc(var(--r) + 1px) calc(100% - 1px), #0000), 
+    conic-gradient(red calc(var(--p) * 1%), #0000 0%), 
+    radial-gradient(circle at 50% 0.1em, var(--rond));
+  padding: 2.5em;
+  -webkit-mask: var(--mask);
+  mask: var(--mask);
+  -webkit-mask-composite: source-over, source-in;
+  mask-composite: add, intersect;
+  animation: r 6s ease-out infinite, 
+    x 1.5s cubic-bezier(0.365, 0, 0.635, 1) -0.75s infinite alternate, 
+    y 1.5s cubic-bezier(0.365, 0, 0.635, 1) infinite alternate;
+  content: '';
+}
+
+.load::after {
+  place-items: center;
+  -webkit-background-clip: text;
+  color: #0000;
+  mix-blend-mode: difference;
+  content: counter(p) '%';
+}
+
+@keyframes p {
+  50%, 100% {
+    --p: 100;
+  }
+}
+
+@keyframes r {
+  0%, 50% {
+    --r: calc(100% - 0.5em);
+  }
+  75%, 100% {
+    --r: -1px;
+  }
+}
+
+@keyframes x {
+  100% {
+    --x: calc(100% - 0.5em);
+  }
+}
+
+@keyframes y {
+  100% {
+    --y: calc(100% - 0.5em);
+  }
+}

@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Student List{% endblock %}
+
+{% block content %}
+
+<div class="page-wrapper">
+               <div class="content container-fluid">
+
+                    <div class="page-header">
+                         <div class="row align-items-center">
+                              <div class="col-sm-12">
+                                   <div class="page-sub-header">
+                                        <h3 class="page-title">Add Exercise</h3>
+                                        <ul class="breadcrumb">
+                                             <li class="breadcrumb-item"><a href="/exercises">Exercises</a></li>
+                                             <li class="breadcrumb-item active">Add Exercise</li>
+                                        </ul>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+
+                    <div class="row">
+                         <div class="col-sm-12">
+                              <div class="card comman-shadow">
+                                   <div class="card-body">
+                                        <form method="POST" action="{{ url_for('editExercise',  id=data['id']) }}"
+                                             enctype="multipart/form-data">
+
+                                             <div class="row">
+                                                  <div class="col-12">
+                                                       <h5 class="form-title student-info">Exercise Information <span><a
+                                                                      href="javascript:;"><i
+                                                                           class="feather-more-vertical"></i></a></span>
+                                                       </h5>
+                                                  </div>
+                                                  <div class="col-12 col-sm-4">
+                                                       <div class="form-group local-forms">
+                                                            <label>Subject Name <span
+                                                                      class="login-danger">*</span></label>
+                                                            <input 
+                                                                class="form-control" 
+                                                                type="text" 
+                                                                name="subject_name"
+                                                                value="{{data['subject_name']}}"
+                                                                placeholder="{{data['subject_name']}}">
+                                                       </div>
+                                                  </div>
+                                                  <div class="col-12 col-sm-4">
+                                                       <div class="form-group local-forms">
+                                                            <label>Group Name <span class="login-danger">*</span></label>
+                                                            <input 
+                                                                class="form-control" 
+                                                                type="text" 
+                                                                name="group_name"
+                                                                value="{{data['group_name']}}"
+                                                                placeholder="{{data['group_name']}}">
+                                                       </div>
+                                                  </div>
+                                                  <div class="col-12 col-sm-4">
+                                                       <div class="form-group local-forms calendar-icon">
+                                                            <label>End Time <span
+                                                                 class="login-danger">*</span></label>
+                                                                 <input 
+                                                                    class="form-control datetimepicker" 
+                                                                    type="date"
+                                                                    name="expiry_time" 
+                                                                    value="{{data['expiry_time']}}"
+                                                                 >
+                                                       </div>
+                                                  </div>
+                                                  <div class="col-12">
+                                                       <div class="form-group local-forms">
+                                                            <label>Text <span class="login-danger">*</span></label>
+                                                            <textarea 
+                                                                id="myTextarea"
+                                                                class="form-control" 
+                                                                id="exampleFormControlTextarea1" 
+                                                                rows="3" 
+                                                                name="messenge"
+                                                                value="{{ data['messenge'] }}"
+                                                            >{{ data['messenge'] }}</textarea>
+                                                       </div>
+                                                  </div>
+                                                  <div class="col-12 col-sm-4">
+                                                       <div class="form-group students-up-files">
+                                                            <label id="fileLabel">{{data['file_name']}}</label><br>
+                                                            <label>Upload File <10mg </label>
+                                                            <div class="uplod">
+                                                                <label class="file-upload image-upbtn mb-0">
+                                                                    Choose File <input 
+                                                                        id="fileInput"
+                                                                        type="file" 
+                                                                        name="file_name"
+                                                                        accept="application/pdf, ,application/msword"
+                                                                        style="display:none;"
+                                                                        onchange="updateFileName()"
+                                                                    >
+                                                                </label>
+                                                            </div>
+                                                            <div class="alert alert-danger mt-2" id="errorContainer" style="display:none;"></div>
+                                                            <!-- Error message container -->
+                                                        </div>
+                                                  </div>
+
+                                                  <div class="col-12">
+                                                       <div class="student-submit">
+                                                            <button type="submit"
+                                                                 class="btn btn-primary">Submit</button>
+                                                       </div>
+                                                  </div>
+                                             </div>
+                                        </form>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               </div>
+          </div>
+          
+          <script>
+
+               // Function to truncate a file name to a given length
+               function truncateFileName(fileName, maxLength) {
+                   if (fileName.length <= maxLength) {
+                       return fileName;
+                   }
+                   
+                   const startLength = Math.floor((maxLength - 3) / 2);
+                   const endLength = maxLength - startLength - 3;
+                   
+                   const truncatedName = fileName.substring(0, startLength) + "..." + fileName.substring(fileName.length - endLength);
+                   
+                   return truncatedName;
+               }
+       
+               // Function to update the file name when a file is selected
+               function updateFileName() {
+               const fileInput = document.getElementById('fileInput');
+               const fileLabel = document.getElementById('fileLabel');
+               const errorContainer = document.getElementById('errorContainer');
+               
+               if (fileInput.files.length > 0) {
+                    const selectedFile = fileInput.files[0];
+                    
+                    // Check if the file size exceeds the limit (e.g., 10MB)
+                    const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
+                    
+                    if (selectedFile.size > maxSizeInBytes) {
+                         // Display error message
+                         errorContainer.style.display = 'block';
+                         errorContainer.textContent = "File size exceeds the limit (10MB). Please choose a smaller file.";
+                         
+                         // Clear the file input
+                         fileInput.value = '';
+                         
+                         return;
+                    }
+                    
+                    const selectedFileName = selectedFile.name;
+                    fileLabel.textContent = truncateFileName(selectedFileName, 30);
+                    
+                    // Clear any previous error message
+                    errorContainer.style.display = 'none';
+                    errorContainer.textContent = '';
+                    } else {
+                         fileLabel.textContent = "{{data['file_name']}}";
+                         
+                         // Clear any previous error message
+                         errorContainer.style.display = 'none';
+                         errorContainer.textContent = '';
+                    }
+               }
+
+           </script>
+           
+{% endblock %}

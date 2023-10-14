@@ -1,24 +1,30 @@
 .subj-container {
-    display: grid;
+    /* display: grid; */
+    display: flex;
     grid-template-columns: repeat(4, 1fr);
     justify-content: center;
     gap: 40px;
     margin: 20px;
+    flex-direction: column;
 }
 
 .subj-card {
-    background-color: #2C2c50;
+    /* background-color: #2C2c50; */
     justify-content: center;
     align-items: center;
-    text-align: center;
-    width: 270px;
-    height: 400px;
+    /* text-align: center; */
+    /* width: 270px;
+    height: 400px; */
     border-radius: 10px;
     cursor: pointer;
 }
 
+.subject_name {
+    text-align: center;
+}
+
 .subj-card h3 {
-    color: aliceblue;
+    /* color: aliceblue; */
     margin-top: 20px;
 }
 

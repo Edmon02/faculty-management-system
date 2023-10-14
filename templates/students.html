@@ -83,12 +83,12 @@
                                         class="table border-0 star-student table-hover table-center mb-0 datatable table-striped">
                                         <thead class="student-thread">
                                              <tr>
-                                                  <th>
+                                                  <!-- <th>
                                                        <div class="form-check check-tables">
                                                             <input class="form-check-input" type="checkbox"
                                                                  value="something" />
                                                        </div>
-                                                  </th>
+                                                  </th> -->
                                                   <th>ID</th>
                                                   <th>Name</th>
                                                   <th>Class</th>
@@ -96,18 +96,20 @@
                                                   <th>Parent Name</th>
                                                   <th>Mobile Number</th>
                                                   <th>Address</th>
-                                                  <th class="text-end">Action</th>
+                                                  {% if session['is_Admin'] == 'True' %}
+                                                       <th class="text-end">Action</th>
+                                                  {% endif %}
                                              </tr>
                                         </thead>
                                         <tbody>
                                              {% for student in data %}
                                                   <tr>
-                                                       <td>
+                                                       <!-- <td>
                                                             <div class="form-check check-tables">
                                                                  <input class="form-check-input" type="checkbox"
                                                                       value="something" />
                                                             </div>
-                                                       </td>
+                                                       </td> -->
                                                        <td>{{student.id}}</td>
                                                        <td>
                                                             <h2 class="table-avatar">
@@ -124,18 +126,20 @@
                                                        <td>{{student['patronymic']}}</td>
                                                        <td>{{student['phone']}}</td>
                                                        <td>{{student['address']}}</td>
-                                                       <td class="text-end">
-                                                            <div class="actions">
-                                                                 <a href="javascript:;"
-                                                                      class="btn btn-sm bg-success-light me-2">
-                                                                      <i class="feather-eye"></i>
-                                                                 </a>
-                                                                 <a href="{{ url_for('editStudent', id=student['id']) }}"
-                                                                      class="btn btn-sm bg-danger-light">
-                                                                      <i class="feather-edit"></i>
-                                                                 </a>
-                                                            </div>
-                                                       </td>
+                                                       {% if session['is_Admin'] == 'True' %}
+                                                            <td class="text-end">
+                                                                 <div class="actions">
+                                                                      <!-- <a href="javascript:;"
+                                                                           class="btn btn-sm bg-success-light me-2">
+                                                                           <i class="feather-eye"></i>
+                                                                      </a> -->
+                                                                      <a href="{{ url_for('editStudent', id=student['id']) }}"
+                                                                           class="btn btn-sm bg-danger-light">
+                                                                           <i class="feather-edit"></i>
+                                                                      </a>
+                                                                 </div>
+                                                            </td>
+                                                       {% endif %}
                                                   </tr>
                                              {% endfor %}
                                         </tbody>

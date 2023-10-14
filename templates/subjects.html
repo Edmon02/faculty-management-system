@@ -65,49 +65,68 @@
 
 
 
-                              <div class="subj-container">
-                                   {% for data in file_data %}
-                                   <div class="subj-card">
-                                        <h3>{{ data['subject_name'][:20] }}</h3>
-                                        <!-- <img src="../static/images/back1.png" /> -->
-                                        {% for file in data['files'] %}
-                                             <div style="
-                                                       display: flex;
-                                                       text-align: center;
-                                                       color: aliceblue;
-                                                       align-items: center;
-                                                       justify-content: center;                                             
-                                                       margin: 20px 0 20px 0;
-                                                  ">
-                                                  {% if file['file_type'] in ('.doc', '.docx') %}
-                                                  <img src="../static/css/assets/img/icons/doc.png"
-                                                       style="
-                                                            width: 20px;
-                                                            height: 20px;
-                                                            align-items: cneter;
-                                                            margin: 0;
-                                                       ">
-                                                  {% elif file['file_type'] in ('.pdf') %}
-                                                  <img src="../static/css/assets/img/icons/pdf.png"
-                                                       style="
-                                                            width: 20px;
-                                                            height: 20px;
-                                                            align-items: cneter;
-                                                            margin: 0;
-                                                       ">
+                              <!-- <div class="subj-container"> -->
+                              {% for data in file_data %}
+                              <div class="subj-card">
+                                   <h3 class="subject_name">{{ data['subject_name'][:20] }}</h3>
+                                   <table
+                                        class="table border-0 star-student table-hover table-center mb-0 datatable table-striped">
+
+                                        <thead class="student-thread">
+                                             <tr>
+                                                  <th>File</th>
+                                                  <th>Descripiton</th>
+                                                  {% if session['is_Lecturer'] == 'True' %}
+                                                  <th class="text-end">Action</th>
                                                   {% endif %}
+                                             </tr>
+                                        </thead>
+                                        <tbody>
+                                             {% for file in data['files'] %}
+                                             <tr>
+                                                  <td>
+                                                       {% if file['file_type'] in ('.doc', '.docx') %}
+                                                       <img src="../static/css/assets/img/icons/doc.png" style="
+                                                                      width: 20px;
+                                                                      height: 20px;
+                                                                      align-items: cneter;
+                                                                      margin: 0;
+                                                                 ">
+                                                       {% elif file['file_type'] in ('.pdf') %}
+                                                       <img src="../static/css/assets/img/icons/pdf.png" style="
+                                                                      width: 20px;
+                                                                      height: 20px;
+                                                                      align-items: cneter;
+                                                                      margin: 0;
+                                                                 ">
+                                                       {% endif %}
+                                                       <a href="{{ url_for('show_file', filename=file['file_name']) }}"
+                                                            target="_blank">{{ file['file_name'][:10] }}...</a>
+                                                  </td>
+                                                  <td></td>
+                                                  <td class="text-end">
+                                                       <div class="actions">
+                                                            <a href="#"
+                                                                 class="btn btn-sm bg-danger-light me-2">
+                                                                 <i class="feather-edit"></i>
+                                                            </a>
+                                                            <a href="{{ url_for('deleteSubject', id1=file['subject_id'], id2=file['file_id']) }}"
+                                                            class="btn btn-sm bg-danger-light">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                            </a>
+                                                       </div>
+                                                  </td>
 
-                                                  <div class="db-info">
-                                                            <a style="color: white;" href="{{ url_for('show_file', filename=file['file_name']) }}"
-                                                                 target="_blank">{{ file['file_name'][:10] }}...</a>
-                                                            <!-- add this code in your HTML file where you want to display the image -->
 
-                                                  </div>
-                                             </div>
-                                        {% endfor %}
-                                   </div>
-                                   {% endfor %}
+                                             </tr>
+                                             {% endfor %}
+                                        </tbody>
+                                   </table>
                               </div>
+                              {% endfor %}
+                              <!-- </div> -->
+
+
 
 
                          </div>
