@@ -116,12 +116,12 @@
                                                                  <a href="student-details.html"
                                                                       class="avatar avatar-sm me-2"><img
                                                                            class="avatar-img rounded-circle"
-                                                                           src="../static/css/assets/img/profiles/avatar-01.jpg"
+                                                                           src="data:image/jpeg;base64,{{ student['image'] }}"
                                                                            alt="User Image" /></a>
                                                                  <a href="student-details.html">{{ student['first_name']}}</a>
                                                             </h2>
                                                        </td>
-                                                       <td>{{student['group_id']}}</td>
+                                                       <td>{{student['group_name']}}</td>
                                                        <td>{{ student['birthday_date'] }}</td>
                                                        <td>{{student['patronymic']}}</td>
                                                        <td>{{student['phone']}}</td>

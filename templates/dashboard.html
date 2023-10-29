@@ -3,7 +3,6 @@
 {% block content %}
 <div class="page-wrapper">
   <div class="content container-fluid">
-    {% if session['type'] == 'student' %}
     <div class="page-header">
       <div class="row">
         <div class="col-sm-12">
@@ -19,6 +18,7 @@
         </div>
       </div>
     </div>
+    {% if session['type'] == 'student' %}
 
     {% for data in data['files'] %}
     <div class="subj-card">
@@ -79,7 +79,6 @@
     {% endif %}
     <div class="row">
       {% if session['type'] == 'lecturer' %}
-      {{session['type']}}
       {% for group_name, group in data['group_datas'].items()%}
       <div class="col-xl-6 d-flex">
         <div class="card flex-fill student-space comman-shadow">
@@ -142,7 +141,7 @@
       <div class="col-xl-6 d-flex">
         <div class="card flex-fill comman-shadow">
           <div class="card-header d-flex align-items-center">
-            <div class="card-title" id="user-activity-graph"></div>
+            {{ div | safe }}
           </div>
         </div>
       </div>
@@ -232,7 +231,7 @@
   </div>
 </div>
 
-
+{{ script | safe }}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
   // Load the Plotly graph using the JSON data
@@ -241,4 +240,14 @@
 
   Plotly.react(graphDiv, {{ graph_json | safe }}, {});
 </script>
+<script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.3.0.min.js"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-3.3.0.min.js"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-3.3.0.min.js"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.bokeh.org/bokeh/release/bokeh-gl-3.3.0.min.js"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.bokeh.org/bokeh/release/bokeh-mathjax-3.3.0.min.js"
+        crossorigin="anonymous"></script>
 {% endblock %}

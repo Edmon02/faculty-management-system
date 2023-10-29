@@ -22,6 +22,9 @@ from collections import defaultdict
 from flask_socketio import SocketIO, emit
 import time
 import plotly.express as px
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, DatetimeTickFormatter
+from bokeh.embed import components
 import pandas as pd
 
 # Define login form
@@ -42,8 +45,6 @@ def random_numbers(length):
 
 def random_password(length):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
-
-import sqlite3
 
 def insert_student_data(data):
     conn = sqlite3.connect(DATABASE)
@@ -84,7 +85,7 @@ def insert_student_data(data):
     conn.close()
 
 
-UPLOAD_FOLDER = 'c:\\Users\\edmon\\Downloads\\Telegram Desktop\\Polytech_Univ\\'
+UPLOAD_FOLDER = 'static/images'
 
 app = Flask(__name__)
 
@@ -105,7 +106,8 @@ app.config['SECRET_KEY'] = secret_key
 app.config['DATABASE'] = DATABASE
 
 
-
+image_data = ''
+news = []
 # Set up rate limiting
 limiter = Limiter(
     key_func=get_remote_address,     
@@ -139,27 +141,8 @@ def check_and_invalidate_session(user_id, current_ip):
             session['user_ip'] = current_ip
     return False
 
-# Define a list of restricted routes for students
-# Register the custom 404 error handler
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html'), 404
-
-restricted_routes_for_students = ['/students/add-student']
-
-# Define a before_request function to check and redirect if needed
-@app.before_request
-def check_user_access():
-    # Get the requested path
-    requested_path = request.path
-    # Check if the user is a student and the requested path is restricted
-    is_student = False  # Replace this with your logic to determine if the user is a student
-    if is_student and requested_path in restricted_routes_for_students:
-        # Redirect the student to a different page, e.g., a 404 page
-        return render_template('404.html'), 404
-
-@app.route('/')
-def news():
+def takeNews():
+    global news
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
@@ -170,98 +153,151 @@ def news():
     for item in news:
         if 'cover' in item:
             item['cover'] = base64.b64encode(item['cover']).decode('utf-8')
-
     conn.commit()
     conn.close()
-    return render_template('index.html', news=news)
+
+takeNews()
+# Define a list of restricted routes for students
+# Register the custom 404 error handler
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+restricted_routes = {
+    'student': ['/students', '/students/add-student', '/students/edit-student', '/add-teacher', '/edit-teacher', '/waitingroom', '/add-news', '/exercise', '/add-exercise', '/edit-exercise'],
+    'lecturer': ['/students/add-student', '/students/edit-student', '/add-teacher', '/edit-teacher', '/add-news'],
+    'admin': []
+    }
+
+# Define a before_request function to check and redirect if needed
+@app.before_request
+def check_user_access():
+    # Get the requested path
+    requested_path = request.path
+    user_type = session.get('type')
+    # Check if the user is a student and the requested path is restricted
+    if user_type and requested_path in restricted_routes.get(user_type):
+        # Redirect the student to a different page, e.g., a 404 page
+        return render_template('404.html'), 404
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    form = LoginForm()
-    if bool(form.username.data and form.password.data) and 'logged_in' not in session:
-        data = request.get_json()
+    if request.method == 'POST':
+        form = LoginForm()
+        if bool(form.username.data and form.password.data) and 'logged_in' not in session:
+            data = request.get_json()
 
-        # Extract username and password from the request
-        username = data.get('username')
-        password = data.get('password')
-        conn = sqlite3.connect(DATABASE)
-        cursor = conn.cursor()
-        query = "SELECT * FROM Users WHERE username = ? AND password = ?"
-
-        cursor.execute(query, (username, password))
-
-        # Fetch the first row
-        result = cursor.fetchone()
-        
-        if result is not None:
-            column_names = [description[0] for description in cursor.description]
-
-            # Fetch the results
-            user_data = dict(zip(column_names, result))
-            query = "SELECT * FROM Student WHERE id = ?" if user_data['type'] == 'student' else "SELECT * FROM Lecturer WHERE id = ?"
-
-            cursor.execute(query, (user_data['_id'], ))
-            # Get the column names
-            column_names = [description[0] for description in cursor.description]
-
-            # Fetch the results
-            data = dict(zip(column_names, cursor.fetchone()))
-            # print(data)
-
-            if user_data['type'] != 'student':
-                query = """
-                        SELECT
-                            group_name
-                        FROM LecturerGroup lg
-                        WHERE lg.lecturer_id = ?;
-                        """
-                cursor.execute(query, (data['id'],))
-                # Fetch the results
-                group_ids = [result[0] for result in cursor.fetchall()]
-            else:
-                group_ids = str(data['group_name'])
-
-        cursor.close()
-        conn.close()
-        if result is not None and data:
+            # Extract username and password from the request
+            username = data.get('username')
+            password = data.get('password')
             conn = sqlite3.connect(DATABASE)
             cursor = conn.cursor()
-            # if there is activity for the current month
-            user_id = data['id']
-            current_date = datetime.now()
-            cursor.execute("SELECT date FROM ActivityLog WHERE  strftime('%Y-%m', date) = ?", (current_date.strftime('%Y-%m'), ))
-            activity_log_id = cursor.fetchone()
+            query = "SELECT * FROM Users WHERE username = ? AND password = ?"
 
-            if activity_log_id:
-                # Update activity_count in the User table
-                cursor.execute("UPDATE ActivityLog SET activity_count = activity_count + 1 WHERE strftime('%Y-%m', date) = ?", (current_date.strftime('%Y-%m'),))
-            else:
-                # Insert a new record in the ActivityLog table
-                cursor.execute("INSERT INTO ActivityLog (date) VALUES (?)", (current_date.strftime('%Y-%m-%d'), ))
+            cursor.execute(query, (username, password))
 
-            conn.commit()
+            # Fetch the first row
+            result = cursor.fetchone()
+            
+            if result is not None:
+                column_names = [description[0] for description in cursor.description]
+
+                # Fetch the results
+                user_data = dict(zip(column_names, result))
+                query = "SELECT * FROM Student WHERE id = ?" if user_data['type'] == 'student' else "SELECT * FROM Lecturer WHERE id = ?"
+
+                cursor.execute(query, (user_data['_id'], ))
+                # Get the column names
+                column_names = [description[0] for description in cursor.description]
+
+                # Fetch the results
+                data = dict(zip(column_names, cursor.fetchone()))
+                # print(data)
+
+                if user_data['type'] != 'student':
+                    query = """
+                            SELECT
+                                group_name
+                            FROM LecturerGroup lg
+                            WHERE lg.lecturer_id = ?;
+                            """
+                    cursor.execute(query, (data['id'],))
+                    # Fetch the results
+                    group_ids = [result[0] for result in cursor.fetchall()]
+                else:
+                    group_ids = str(data['group_name'])
+
+            cursor.close()
             conn.close()
-            # student_id = data[0]
-            # hashed_password = data['password']
-            current_ip = request.remote_addr
-            # # Check and invalidate previous session if necessary
-            # if check_and_invalidate_session(data['id'], current_ip):
-            #     return jsonify({'message': 'Previous session invalidated. Please log in again.'})
-            session['logged_in'] = True
-            session['type'] = user_data['type']
-            session['first_name'] = data['first_name']
-            session['last_name'] = data['last_name']
-            session['is_Admin'] = data['is_Admin']
-            session['is_Lecturer'] = data['is_Lecturer']
-            session['ID'] = user_id
-            session['user_ip'] = current_ip
+            if result is not None and data:
+                conn = sqlite3.connect(DATABASE)
+                cursor = conn.cursor()
+                # if there is activity for the current month
+                user_id = data['id']
+                current_date = datetime.now()
+                current_month = current_date.strftime('%Y-%m')
+                cursor.execute("SELECT date FROM ActivityLog WHERE date = ?", (current_month, ))
+                activity_log_id = cursor.fetchone()
+                if activity_log_id:
+                    # Update activity_count in the User table
+                    cursor.execute("UPDATE ActivityLog SET activity_count = activity_count + 1 WHERE date = ?", (current_month,))
+                else:
+                    # Insert a new record in the ActivityLog table
+                    cursor.execute("INSERT INTO ActivityLog (date) VALUES (?)", (current_month, ))
 
-            session['group_ids'] = group_ids if isinstance(group_ids, list) else (group_ids,)
-            return jsonify({'message': 'Login successful'})
-    elif 'logged_in' in session:
+                conn.commit()
+                conn.close()
+                # student_id = data[0]
+                # hashed_password = data['password']
+                current_ip = request.remote_addr
+                # # Check and invalidate previous session if necessary
+                # if check_and_invalidate_session(data['id'], current_ip):
+                #     return jsonify({'message': 'Previous session invalidated. Please log in again.'})
+                session['logged_in'] = True
+                session['type'] = user_data['type']
+                session['first_name'] = data['first_name']
+                session['last_name'] = data['last_name']
+                session['is_Admin'] = data['is_Admin']
+                session['is_Lecturer'] = data['is_Lecturer']
+                session['ID'] = user_id
+                session['user_ip'] = current_ip
+
+                session['group_ids'] = group_ids if isinstance(group_ids, list) else (group_ids,)
+                return jsonify({'message': 'Login successful'})
+        elif 'logged_in' in session:
+            return redirect(url_for('dashboard'))
+    else:
+        return render_template('index.html', news=news)
+
+@app.route('/news')
+def newsList():
+    return render_template('index.html', news=news)
+
+@app.route('/roadmap')
+def roadmap():
+    return render_template('index.html', news=news)
+
+@app.route('/about-us')
+def aboutUs():
+    return render_template('index.html', news=news)
+
+@app.route('/contact')
+def conatc():
+    return render_template('index.html', news=news)
+
+@app.route('/login')
+def login():
+    if 'logged_in' in session:
         return redirect(url_for('dashboard'))
-    return render_template('index.html', form=form)
+    return render_template('index.html', news=news)
+
+@app.route('/logout')
+def logout():
+    # Clear the session data
+    session.clear()
+    # Redirect to the login page
+    return redirect(url_for('index'))
 
 def get_user_activity_data():
     conn = sqlite3.connect(DATABASE)
@@ -279,12 +315,6 @@ def get_user_activity_data():
 
     return user_data
 
-@app.route('/logout')
-def logout():
-    # Clear the session data
-    session.clear()
-    # Redirect to the login page
-    return redirect(url_for('index'))
 
 @cache
 @app.route('/dashboard')
@@ -388,17 +418,30 @@ def dashboard():
         # Replace this with your actual data retrieval logic
         user_data = get_user_activity_data()
 
-        # Create a Plotly figure
-        fig = px.line(user_data, x='date', y='activity_count', labels={'activity_count': 'User Activity'})
+        # Convert the data to a DataFrame
+        user_data = pd.DataFrame(user_data)
 
-        # You can customize the layout if needed
-        fig.update_layout(title='User Activity Over Time', xaxis_title='Date', yaxis_title='Activity Count')
+        # Convert 'date' to datetime format
+        user_data['date'] = pd.to_datetime(user_data['date'])
 
-        # Convert the Plotly figure to JSON for rendering in the template
-        graph_json = fig.to_json()
+        # Create a Bokeh figure
+        p = figure(title='User Activity Over Time', x_axis_label='Date', y_axis_label='Activity Count', x_axis_type='datetime', max_height=400)
+
+        # Configure the x-axis ticker to show monthly ticks
+        p.xaxis[0].ticker.desired_num_ticks = len(user_data['date'].unique())
+        p.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+
+        # Plot the line
+        p.line(user_data['date'], user_data['activity_count'], legend_label='User Activity')
 
 
-        return render_template('dashboard.html', data=data, graph_json=graph_json)
+        # Customize the plot if needed
+        p.legend.location = 'top_left'
+
+        # Get the script and div components for embedding
+        script, div = components(p)
+
+        return render_template('dashboard.html', data=data, script=script, div=div)
     else:
         return redirect(url_for('index'))
 
@@ -418,6 +461,10 @@ def studentsList():
 
         # Fetch the results
         data_student = [dict(zip(column_names, row)) for row in cursor.fetchall()]
+        for item in data_student:
+            if 'image' in item:
+                item['image'] = base64.b64encode(item['image']).decode('utf-8')
+        
         conn.close()
 
         if request.method == 'GET':
@@ -637,6 +684,10 @@ def teachers():
 
     # Fetch the results
     lecturer_data = [dict(zip(column_names, row)) for row in cursor.fetchall()]
+    for item in lecturer_data:
+        if 'images' in item:
+            item['images'] = base64.b64encode(item['images']).decode('utf-8')
+    
     if request.method == 'GET':
         search_params = {}
 
@@ -1182,28 +1233,48 @@ def handle_message(data):
 @app.route('/add-news', methods=['GET', 'POST'])
 def addNews():
     if request.method == 'POST':
+        if 'img' in request.files:
+            global image_data
+            image_data = request.files.get('img').read()
+            return 'success'
+
+        # if file and not allowed_file(file.filename):
+        #     return 'incorrect file type'
+
+        # if file.filename == '':
+        #     return jsonify({'error': 'No selected file'})
+
+        # # Save the file to a desired location
+        # # file.save('static/images/' + file.filename)
+
+        # return jsonify({'message': 'File uploaded successfully'})
+
         category = request.form['category']
         title = request.form['title']
         desc = request.form['messenge']
-        image = 'static/react/media/news3.2c34506ddfc7636dfa4c.jpg'
-        with open(image, "rb") as f:
-                image_data = f.read()
 
         current_datetime = datetime.now()
         formatted_date = current_datetime.strftime('%Y-%m-%d')
         conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor()
-
         query = "INSERT INTO News (category, title, date, cover, desc) VALUES (?, ?, ?, ?, ?)"
         data = (category, title, formatted_date, sqlite3.Binary(image_data), desc)
-        print(data)
         cursor.execute(query, data)
 
         conn.commit()
         conn.close()
-
+        takeNews()
     return render_template('news.html')
 
+# Specify the allowed file extensions for images
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/chatbot')
+def chatbot():
+    return render_template('chatbot.html')
 
 # # Background task to check and delete expired rows
 # def delete_expired_rows():
@@ -1234,4 +1305,4 @@ def addNews():
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    app.run(debug=True)

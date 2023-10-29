@@ -500,15 +500,26 @@
                   {% endif %}
                 </ul>
               </li>
-              {% endif %} {% if session['is_Lecturer'] == 'True' %} {% endif %}
+              {% endif %} {% if session['is_Lecturer'] == 'True' %} 
               <li class="submenu1">
                 <a
-                  href="/waitingroom"
-                  class="{{ 'active' if '/waitingroom' in request.path else '' }}"
-                  ><i class="fa-regular fa-clock"></i
+                href="/waitingroom"
+                class="{{ 'active' if '/waitingroom' in request.path else '' }}"
+                ><i class="fa-regular fa-clock"></i
                   ><span>Waiting Room</span></a
+                  >
+                </li>
+              {% endif %}
+              {% if session['type'] == 'admin' %}
+              <li class="submenu1">
+                <a
+                  href="/add-news"
+                  class="{{ 'active' if '/add-news' in request.path else '' }}"
+                  ><i class="fa-regular fa-newspaper"></i>
+                  <span>Add News</span></a
                 >
               </li>
+              {% endif %}
             </ul>
           </div>
         </div>
