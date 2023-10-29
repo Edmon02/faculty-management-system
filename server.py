@@ -24,7 +24,7 @@ from collections import defaultdict
 import time
 import plotly.express as px
 from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource, DatetimeTickFormatter
+from bokeh.models import DatetimeTickFormatter
 from bokeh.embed import components
 import pandas as pd
 from text_generation import Client
