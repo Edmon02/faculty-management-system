@@ -23,7 +23,7 @@ from flask_socketio import SocketIO, emit
 import time
 import plotly.express as px
 from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource, DatetimeTickFormatter
+from bokeh.models import DatetimeTickFormatter
 from bokeh.embed import components
 import pandas as pd
 
