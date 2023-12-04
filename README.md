@@ -1,2 +1,2 @@
 # Pulpit
-Go to web site [TT Ambion](https://dante02.pythonanywhere.com/)
+[Go to TT Ambion](https://dante02.pythonanywhere.com/){:target="_blank"}
