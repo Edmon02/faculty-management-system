@@ -1,4 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session, make_response, flash, get_flashed_messages, jsonify, g#, send_from_directory, send_file,
+import warnings
+warnings.filterwarnings("ignore")
+
+from flask import Flask, render_template, request, redirect, url_for, session, make_response, flash, get_flashed_messages, jsonify, g # send_from_directory, send_file,
 from flask_wtf import FlaskForm
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -15,30 +18,28 @@ import os
 from openpyxl import Workbook
 import mimetypes
 import sqlite3
-from functools import cache
 from datetime import datetime, timedelta
 import urllib.parse
 from collections import defaultdict
-from flask_socketio import SocketIO, emit
 import time
 import plotly.express as px
 from bokeh.plotting import figure
-from bokeh.models import DatetimeTickFormatter
+from bokeh.models import ColumnDataSource, DatetimeTickFormatter
 from bokeh.embed import components
 import pandas as pd
+from text_generation import Client
+from flask_cors import CORS, cross_origin
+import traceback
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv()
 
 # Define login form
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
-
-class AddSubjectForm(FlaskForm):
-    first_name = StringField('first_name', validators=[DataRequired()])
-    group = SelectField('group', choices=[('1', '1'), ('2', '2'), ('3', '3')], validators=[DataRequired()])
-    file = FileField('file', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
 
 def random_numbers(length):
     return ''.join(str(random.randint(0, 9)) for _ in range(length))
@@ -84,10 +85,10 @@ def insert_student_data(data):
     cursor.close()
     conn.close()
 
-
 UPLOAD_FOLDER = 'static/images'
 
 app = Flask(__name__)
+CORS(app)
 
 secret_key = secrets.token_hex(16)
 app.secret_key = secret_key
@@ -95,6 +96,16 @@ app.secret_key = secret_key
 cur_dir = os.path.dirname(__file__)
 # Define the SQLite database path
 DATABASE =  os.path.join(cur_dir, 'pulpit.sqlite')
+
+
+API_URL = os.environ.get("API_URL", None)
+API_TOKEN = os.environ.get("API_TOKEN", None)
+# Set an environment variable for the key
+os.environ['OPENAI_API_KEY'] = os.environ.get("OPENAI_API_KEY", None)
+
+client_op = OpenAI()  # add api_key
+
+client = Client(API_URL, headers={"Authorization": f"Bearer {API_TOKEN}"})
 
 # Set secure configurations
 # app.config['SESSION_COOKIE_SECURE'] = True
@@ -105,14 +116,14 @@ app.config['STATIC_FOLDER'] = '/static/images'
 app.config['SECRET_KEY'] = secret_key
 app.config['DATABASE'] = DATABASE
 
-
 image_data = ''
-news = []
+
 # Set up rate limiting
 limiter = Limiter(
     key_func=get_remote_address,     
     storage_uri="memory://",
     )
+
 # limiter = Limiter(key_func=get_remote_address, storage_uri="redis://localhost:5000")
 limiter.init_app(app)
 
@@ -122,7 +133,134 @@ app.config['SESSION_FILE_DIR'] = '/tmp/flask_session'
 
 # Set the lifetime of a permanent session
 app.permanent_session_lifetime = 60 * 60 * 12  # half day
-socketio = SocketIO(app)
+
+def convert_number_to_words(number: float) -> str:
+    p = inflect.engine()
+    words = p.number_to_words(number)
+    words = translator.translate(words, dest='hy').text
+    return words
+
+def process_text(text: str) -> str:
+    # Convert numbers to words
+    words = []
+    for word in text.split():
+        # Check if the word is a number
+        if re.search(r'\d', word):
+            words.append(convert_number_to_words(int(''.join(filter(str.isdigit, word)))))
+        else:
+            words.append(word)
+
+    # Join the words back into a sentence
+    processed_text = ' '.join(words)
+
+    # Remove URLs
+    processed_text = re.sub(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', '', processed_text)
+
+    return processed_text
+
+def tts(text, model, voice):
+    text = process_text(text)
+    response = client_op.audio.speech.create(
+        model=model,  # "tts-1","tts-1-hd"
+        voice=voice,  # 'alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'
+        input=text,
+    )
+
+    # Get the audio data as a NumPy array
+    audio_data = np.frombuffer(response.content, dtype=np.int16)
+
+    # Convert the audio data to bytes for storage in the database
+    audio_data_bytes = audio_data.tobytes()
+
+    return audio_data_bytes
+
+header = "A chat between a curious human and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions."
+prompt_template = "### Human: {query}\n### Assistant:{response}"
+
+def generate(
+    user_message,
+    chatbot,
+    history,
+    temperature,
+    top_p,
+    max_new_tokens,
+    repetition_penalty,
+):
+    # Don't return meaningless message when the input is empty
+    if not user_message:
+        print("Empty input")
+
+    history.append(user_message)
+
+    past_messages = []
+    for data in chatbot:
+        user_data, model_data = data
+
+        past_messages.extend(
+            [{"role": "user", "content": user_data}, {"role": "assistant", "content": model_data.rstrip()}]
+        )
+        
+    if len(past_messages) < 1:
+        prompt = header + prompt_template.format(query=user_message, response="")
+    else:
+        prompt = header
+        for i in range(0, len(past_messages), 2):
+            intermediate_prompt = prompt_template.format(query=past_messages[i]["content"], response=past_messages[i+1]["content"])
+            # print("intermediate: ", intermediate_prompt)
+            prompt = prompt + '\n' + intermediate_prompt
+
+        prompt = prompt + prompt_template.format(query=user_message, response="")
+
+
+    generate_kwargs = {
+        "temperature": temperature,
+        "top_p": top_p,
+        "max_new_tokens": max_new_tokens,
+    }
+
+    temperature = float(temperature)
+    if temperature < 1e-2:
+        temperature = 1e-2
+    top_p = float(top_p)
+
+    generate_kwargs = dict(
+        temperature=temperature,
+        max_new_tokens=max_new_tokens,
+        top_p=top_p,
+        repetition_penalty=repetition_penalty,
+        do_sample=True,
+        truncate=999,
+        seed=42,
+    )
+
+    stream = client.generate_stream(
+        prompt,
+        **generate_kwargs,
+    )
+
+    output = ""
+    for idx, response in enumerate(stream):
+        if response.token.text == '':
+            break
+
+        if response.token.special:
+            continue
+        output += response.token.text
+        if idx == 0:
+            history.append(" " + output)
+        else:
+            history[-1] = output
+
+        chat = [(history[i].strip(), history[i + 1].strip()) for i in range(0, len(history) - 1, 2)]
+
+        # yield chat, history, user_message, ""
+
+    return chat, history, user_message, ""
+    return {
+        'chatbot': chat,
+        'history': history,
+        'user_message': user_message
+    }
 
 def get_db():
     if 'db' not in g:
@@ -141,22 +279,32 @@ def check_and_invalidate_session(user_id, current_ip):
             session['user_ip'] = current_ip
     return False
 
-def takeNews():
-    global news
+@app.route('/news', methods=['GET'])
+@cross_origin()
+def get_news():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
     cursor.execute('SELECT * FROM News ORDER BY date DESC')
     column_names = [description[0] for description in cursor.description]
     news = [dict(zip(column_names, row)) for row in cursor.fetchall()]
+    
     # Convert image data to base64
     for item in news:
         if 'cover' in item:
             item['cover'] = base64.b64encode(item['cover']).decode('utf-8')
+
+        # Include audio data as base64 if it exists
+        if 'audio' in item:
+            audio_bytes = item['audio']
+            if isinstance(audio_bytes, bytes):
+                item['audio'] = base64.b64encode(audio_bytes).decode('utf-8')
+
     conn.commit()
     conn.close()
 
-takeNews()
+    return jsonify(news)
+
 # Define a list of restricted routes for students
 # Register the custom 404 error handler
 @app.errorhandler(404)
@@ -164,7 +312,7 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 restricted_routes = {
-    'student': ['/students', '/students/add-student', '/students/edit-student', '/add-teacher', '/edit-teacher', '/waitingroom', '/add-news', '/exercise', '/add-exercise', '/edit-exercise'],
+    'student': ['/students/add-student', '/students/edit-student', '/add-teacher', '/edit-teacher', '/waitingroom', '/add-news', '/exercise', '/add-exercise', '/edit-exercise'],
     'lecturer': ['/students/add-student', '/students/edit-student', '/add-teacher', '/edit-teacher', '/add-news'],
     'admin': []
     }
@@ -182,12 +330,12 @@ def check_user_access():
 
 
 @app.route('/', methods=['GET', 'POST'])
+@cross_origin()
 def index():
     if request.method == 'POST':
         form = LoginForm()
         if bool(form.username.data and form.password.data) and 'logged_in' not in session:
             data = request.get_json()
-
             # Extract username and password from the request
             username = data.get('username')
             password = data.get('password')
@@ -265,32 +413,39 @@ def index():
 
                 session['group_ids'] = group_ids if isinstance(group_ids, list) else (group_ids,)
                 return jsonify({'message': 'Login successful'})
+            
+            else :
+                return jsonify({'message': 'NOT successful'}), 500
         elif 'logged_in' in session:
             return redirect(url_for('dashboard'))
     else:
-        return render_template('index.html', news=news)
+        return render_template('index.html')
 
 @app.route('/news')
 def newsList():
-    return render_template('index.html', news=news)
+    return redirect(url_for('index'))
+
+@app.route('/news/<int:id>')
+def newsListId(id):
+    return render_template('index.html')
 
 @app.route('/roadmap')
 def roadmap():
-    return render_template('index.html', news=news)
+    return render_template('index.html')
 
 @app.route('/about-us')
 def aboutUs():
-    return render_template('index.html', news=news)
+    return render_template('index.html')
 
 @app.route('/contact')
 def conatc():
-    return render_template('index.html', news=news)
+    return render_template('index.html')
 
 @app.route('/login')
 def login():
     if 'logged_in' in session:
         return redirect(url_for('dashboard'))
-    return render_template('index.html', news=news)
+    return render_template('index.html')
 
 @app.route('/logout')
 def logout():
@@ -304,7 +459,7 @@ def get_user_activity_data():
     cursor = conn.cursor()
 
     # Example SQL query, replace with your actual query
-    cursor.execute("SELECT date, activity_count FROM ActivityLog")
+    cursor.execute("SELECT date, activity_count FROM ActivityLog ORDER BY date")
     results = cursor.fetchall()
 
     # Convert results to a list of dictionaries
@@ -315,8 +470,6 @@ def get_user_activity_data():
 
     return user_data
 
-
-@cache
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' in session:
@@ -763,30 +916,21 @@ def add_file(subject_id, file_name):
 def subjects():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    # group_ids = session['group_ids']
-    group_ids = ['Group A', 'Group C']
+    group_ids = session['group_ids']
+    # group_ids = ['Group A', 'Group C']
 
-    query2 = """
-    SELECT s.subject_id, s.subject_name
-    FROM Subject s
-    WHERE s.subject_id IN (
-         SELECT slg.subject_id
-         FROM SubjectLecturerGroup slg
-         WHERE slg.lecturer_id IN (
-              SELECT lecturer_id
-              FROM Lecturer
-              WHERE lecturer_id IN (
-                   SELECT lecturer_id
-                   FROM SubjectLecturerGroup
-                   WHERE group_name in ({})
-              )
-         )
-    );
+    query = """
+        SELECT DISTINCT s.subject_id, s.subject_name
+        FROM Subject s
+        JOIN SubjectLecturerGroup slg ON s.subject_id = slg.subject_id
+        JOIN Lecturer l ON slg.lecturer_id = l.id
+        JOIN SubjectLecturerGroup slg2 ON l.id = slg2.lecturer_id
+        WHERE slg2.group_name IN ({});
     """.format(','.join('?' for _ in group_ids))
     
-    cursor.execute(query2, group_ids)
-    column_names2 = [description[0] for description in cursor.description]
-    subject_data = [dict(zip(column_names2, row)) for row in cursor.fetchall()]
+    cursor.execute(query, group_ids)
+    column_names = [description[0] for description in cursor.description]
+    subject_data = [dict(zip(column_names, row)) for row in cursor.fetchall()]
     
     data = []
     for subject in subject_data:
@@ -819,19 +963,18 @@ def subjects():
 
     return render_template('subjects.html', file_data = data)
 
-
 @app.route('/add-subject', methods=['GET', 'POST'])
 def addSubjects():
     if request.method == 'POST':
-        end_time = int(request.form['end_time'])
         group_name = request.form['group_name']
         subject_name = request.form['subject_name']
+        file = request.files
+        print(file)
 
         conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor()
 
-        expiry_time = datetime.now() + timedelta(seconds=end_time)
-        datas = (group_name, messenge, subject_name)
+        datas = (group_name, subject_name)
         query = "INSERT INTO Subject (group_name, messenge, subject_name) VALUES (?, ?, ?)"
         cursor.execute(query, datas)
         conn.commit()
@@ -839,47 +982,6 @@ def addSubjects():
 
     else :
         return render_template('add-subject.html')
-    # form = AddSubjectForm()
-    # if form.validate_on_submit():
-    #     # Get form data
-    #     file = request.files['file']
-    #     file_data = file.read()
-
-    #     # create a binary object from the file data
-    #     binary_data = bson.binary.Binary(file_data)
-
-    #     first_name = request.form['first_name']
-    #     group = request.form['group']
-
-    #     # Store data in MongoDB
-    #     document =  {
-    #         'first_name': first_name,
-    #         'group_id': int(group),
-    #         'file_name': file.filename,
-    #         'file':binary_data
-    #     }
-    #     # Save data to MongoDB
-    #     files.insert_one(document)
-
-    #     flash('Subject added successfully!', 'success')
-    #     time.sleep(5) # Delay for 2 seconds
-    #     # return redirect(url_for('dashboard'))
-
-    # # Check if form has been submitted and all fields are not filled
-    # if request.method == 'POST' and not form.validate():
-    #     flash('Please fill out all fields.', 'danger')
-
-    # messages = get_flashed_messages()
-    # if messages:
-    #     return render_template('add-subject.html', form=form, messages=messages)
-
-    #     # # Check file size
-    #     # file = request.files['file']
-    #     # file_size = len(file.read())
-    #     # if file_size > 10485760:  # 10 MB in bytes
-    #     #     return render_template('add-subject.html', error='File size exceeds the limit')
-    #     # filename = file.filename
-    #     # print(filename, file_size)
     return render_template('add-subject.html')
 
 @app.route('/delte-subject/<int:id1>/<int:id2>', methods=['GET', 'POST'])
@@ -920,11 +1022,10 @@ def exercie():
     if session['type'] == 'student':
         query = '''SELECT exercise_id
                     FROM WaitRoom
-                    Where user_id = ?    
+                    Where student_id = ?    
                 '''
         cursor.execute(query, (session['ID'],))
         checkTypes = [row[0] for row in cursor.fetchall()]
-    print(checkTypes)
 
     for exercise in exercise_data:
         exercise['checkType'] = 1 if exercise['id'] in checkTypes else 0
@@ -1154,84 +1255,9 @@ def done(exercise_id, student_id, selected_value):
     conn.close()
     return redirect(url_for('waitingRoom'))
 
-@app.route('/message')
-def message():
-    receiver_id = 1  # Replace with the actual receiver's ID
-    sender_id = 2
-    # Retrieve chat messages from the database for the given receiver
-    db = get_db()
-    cursor = db.cursor()
-    query = """
-        SELECT sender_id, text
-        FROM Message
-        WHERE receiver_id = ? OR sender_id = ?
-        ORDER BY timestamp -- Replace 'timestamp_column' with your actual timestamp column name
-    """
-    cursor.execute(query, (receiver_id, receiver_id))
-    messages = cursor.fetchall()
-
-    return render_template('message_archive.html', current_user={'id': receiver_id}, messages=messages)
-
-
-@socketio.on('message')
-def handle_message(data):
-    sender_id = data['sender_id']
-    # receiver_id = data['receiver_id']
-    # sender_id = 1
-    receiver_id = 2
-    message_text = data['message']
-    print(sender_id, receiver_id)
-    # Get the current timestamp
-    timestamp = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
-
-    db = get_db()
-    cursor = db.cursor()
-
-    # Check if the sender is an Admin
-    cursor.execute("SELECT is_Admin FROM Users WHERE id = ?", (sender_id,))
-    sender_is_admin = cursor.fetchone()[0] == 1
-
-    if sender_is_admin:
-        # Admin can message everyone
-        cursor.execute("INSERT INTO Message (text, sender_id, receiver_id, timestamp, is_group_message) VALUES (?, ?, ?, ?, ?)",
-                       (message_text, sender_id, receiver_id, timestamp, 0))
-    else:
-        # Check if the sender is a lecturer or student
-        cursor.execute("SELECT type FROM Users WHERE id = ?", (sender_id,))
-        sender_role = cursor.fetchone()[0]
-
-        if sender_role == 'lecturer':
-            # Lecturers can send group messages to groups they teach
-            cursor.execute("SELECT group_name FROM LecturerGroup WHERE id = ?", (sender_id,))
-            lecturer_group = cursor.fetchone()[0]
-
-            if receiver_id is None:
-                # Group message
-                cursor.execute("INSERT INTO Message (text, sender_id, receiver_id, timestamp, is_group_message) VALUES (?, ?, ?, ?, ?)",
-                               (message_text, sender_id, None, timestamp, 1))
-            else:
-                # Individual message
-                cursor.execute("INSERT INTO Message (text, sender_id, receiver_id, timestamp, is_group_message) VALUES (?, ?, ?, ?, ?)",
-                               (message_text, sender_id, receiver_id, timestamp, 0))
-        elif sender_role == 'student':
-            # Students can only send messages to their group
-            cursor.execute("SELECT group_name FROM Student WHERE id = ?", (sender_id,))
-            student_group = cursor.fetchone()[0]
-
-            if receiver_id is None:
-                # Group message
-                cursor.execute("INSERT INTO Message (text, sender_id, receiver_id, timestamp, is_group_message) VALUES (?, ?, ?, ?, ?)",
-                               (message_text, sender_id, None, timestamp, 1))
-            else:
-                # Individual message
-                cursor.execute("INSERT INTO Message (text, sender_id, receiver_id, timestamp, is_group_message) VALUES (?, ?, ?, ?, ?)",
-                               (message_text, sender_id, receiver_id, timestamp, 0))
-
-    db.commit()
-    emit('message', {'message': message_text, 'sender_id': sender_id, 'timestamp': timestamp}, broadcast=True)
-
 @app.route('/add-news', methods=['GET', 'POST'])
 def addNews():
+    print(request.method)
     if request.method == 'POST':
         if 'img' in request.files:
             global image_data
@@ -1252,6 +1278,8 @@ def addNews():
         category = request.form['category']
         title = request.form['title']
         desc = request.form['messenge']
+        
+
 
         current_datetime = datetime.now()
         formatted_date = current_datetime.strftime('%Y-%m-%d')
@@ -1263,7 +1291,6 @@ def addNews():
 
         conn.commit()
         conn.close()
-        takeNews()
     return render_template('news.html')
 
 # Specify the allowed file extensions for images
@@ -1272,24 +1299,33 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/chatbot')
-def chatbot():
-    return render_template('chatbot.html')
+@app.route('/generate_text', methods=['POST'])
+@cross_origin()
+def generate_text():
+    data = request.json
+    user_message = data.get('user_message')
+    chatbot = data.get('chatbot', [])
+    history = data.get('history', [])
+    temperature = data.get('temperature', 0.7)
+    top_p = data.get('top_p', 0.9)
+    max_new_tokens = data.get('max_new_tokens', 1024)
+    repetition_penalty = data.get('repetition_penalty', 1.2)
+    chatbot = [(item['text'], next_item['text']) for item, next_item in zip(chatbot, chatbot[1:]) if item['user'] == True]
+    try:
+        result = generate(user_message, chatbot, history, temperature, top_p, max_new_tokens, repetition_penalty)
+        return jsonify(result)
+    except Exception as e:
+        # If an exception occurs, capture the traceback information
+        error_traceback = traceback.format_exc()
 
-# # Background task to check and delete expired rows
-# def delete_expired_rows():
-#     # with app.app_context():
-#     # Connect to the SQLite database
-#     conn = sqlite3.connect(DATABASE)
-#     cursor = conn.cursor()
+        # Create a JSON response containing the error information
+        error_response = {
+            'chatbot': str(e),
+            'history': error_traceback
+        }
 
-#     current_time = datetime.now()
-#     query = "DELETE FROM Exercises WHERE expiry_time <= ?"
-#     cursor.execute(query, (current_time,))
-#     conn.commit()
-#     print("Expired values deleted.")
-#     conn.commit()
-#     conn.close()
+        # Return the error response with a specific status code (e.g., 500 for internal server error)
+        return jsonify(error_response), 500
 
 # Lecturer:
 # fYRKVPTdzm
@@ -1302,7 +1338,6 @@ def chatbot():
 # Student:
 # ElwAiWgAZg
 # 03611558
-
 
 if __name__ == '__main__':
     app.run(debug=True)
