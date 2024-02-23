@@ -1,6 +1,7 @@
 bidict==0.22.1
 blinker==1.6.2
 bokeh
+text-generation
 click==8.1.7
 Deprecated==1.2.14
 dnspython==2.4.2
