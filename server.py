@@ -28,7 +28,6 @@ from bokeh.models import DatetimeTickFormatter
 from bokeh.embed import components
 import pandas as pd
 from text_generation import Client
-from flask_cors import CORS, cross_origin
 import traceback
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -88,7 +87,6 @@ def insert_student_data(data):
 UPLOAD_FOLDER = 'static/images'
 
 app = Flask(__name__)
-CORS(app)
 
 secret_key = secrets.token_hex(16)
 app.secret_key = secret_key
@@ -280,7 +278,6 @@ def check_and_invalidate_session(user_id, current_ip):
     return False
 
 @app.route('/news', methods=['GET'])
-@cross_origin()
 def get_news():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -330,7 +327,6 @@ def check_user_access():
 
 
 @app.route('/', methods=['GET', 'POST'])
-@cross_origin()
 def index():
     if request.method == 'POST':
         form = LoginForm()
@@ -1300,7 +1296,6 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/generate_text', methods=['POST'])
-@cross_origin()
 def generate_text():
     data = request.json
     user_message = data.get('user_message')
