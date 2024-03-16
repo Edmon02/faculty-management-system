@@ -1,64 +1,76 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
 
-{% block title %}Dashboard{% endblock %}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col-sm-12">
+      <div class="page-sub-header">
+        <h3 class="page-title">Add Students</h3>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item"><a href="students.html">Student</a></li>
+          <li class="breadcrumb-item active">Add Students</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 
-{% block content %}
-<div class="page-wrapper">
-     <div class="content container-fluid">
-
-          <div class="page-header">
-               <div class="row align-items-center">
-                    <div class="col-sm-12">
-                         <div class="page-sub-header">
-                              <h3 class="page-title">Add Students</h3>
-                              <ul class="breadcrumb">
-                                   <li class="breadcrumb-item"><a href="students.html">Student</a></li>
-                                   <li class="breadcrumb-item active">Add Students</li>
-                              </ul>
-                         </div>
-                    </div>
-               </div>
-          </div>
-
+<div class="row">
+  <div class="col-sm-12">
+    <div class="card comman-shadow">
+      <div class="card-body">
+        <form
+          method="POST"
+          action="{{ url_for('editStudent', id=data['id']) }}"
+          enctype="multipart/form-data"
+        >
           <div class="row">
-               <div class="col-sm-12">
-                    <div class="card comman-shadow">
-                         <div class="card-body">
-                              <form method="POST" action="{{ url_for('editStudent', id=data['id']) }}"
-                                   enctype="multipart/form-data">
-
-                                   <div class="row">
-                                        <div class="col-12">
-                                             <h5 class="form-title student-info">Student Information <span><a
-                                                            href="javascript:;"><i
-                                                                 class="feather-more-vertical"></i></a></span>
-                                             </h5>
-                                        </div>
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group local-forms">
-                                                  <label>First Name </label>
-                                                  <input class="form-control" type="text" name="first_name"
-                                                       value="{{data['first_name']}}"
-                                                       placeholder="{{data['first_name']}}">
-                                             </div>
-                                        </div>
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group local-forms">
-                                                  <label>Last Name </label>
-                                                  <input class="form-control" type="text" name="last_name"
-                                                       value="{{data['last_name']}}"
-                                                       placeholder="{{data['last_name']}}">
-                                             </div>
-                                        </div>
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group local-forms">
-                                                  <label>Patronymic </label>
-                                                  <input class="form-control" type="text" name="patronymic"
-                                                       value="{{data['patronymic']}}"
-                                                       placeholder="{{data['patronymic']}}">
-                                             </div>
-                                        </div>
-                                        <!-- <div class="col-12 col-sm-4">
+            <div class="col-12">
+              <h5 class="form-title student-info">
+                Student Information
+                <span
+                  ><a href="javascript:;"
+                    ><i class="feather-more-vertical"></i></a
+                ></span>
+              </h5>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>First Name </label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="first_name"
+                  value="{{data['first_name']}}"
+                  placeholder="{{data['first_name']}}"
+                />
+              </div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Last Name </label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="last_name"
+                  value="{{data['last_name']}}"
+                  placeholder="{{data['last_name']}}"
+                />
+              </div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Patronymic </label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="patronymic"
+                  value="{{data['patronymic']}}"
+                  placeholder="{{data['patronymic']}}"
+                />
+              </div>
+            </div>
+            <!-- <div class="col-12 col-sm-4">
                                                   <div class="form-group local-forms">
                                                        <label>Gender </label>
                                                        <select class="form-control select">
@@ -69,23 +81,27 @@
                                                        </select>
                                                   </div>
                                              </div> -->
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group local-forms calendar-icon">
-                                                  <label>Date Of Birth </label>
-                                                  <input class="form-control datetimepicker" type="date"
-                                                       name="expiry_time" value="{{data['birthday_date']}}"
-                                                       placeholder="{{data['birthday_date']}}">
-                                             </div>
-                                        </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms calendar-icon">
+                <label>Date Of Birth </label>
+                <input
+                  class="form-control datetimepicker"
+                  type="date"
+                  name="expiry_time"
+                  value="{{data['birthday_date']}}"
+                  placeholder="{{data['birthday_date']}}"
+                />
+              </div>
+            </div>
 
-                                        <!-- <div class="col-12 col-sm-4">
+            <!-- <div class="col-12 col-sm-4">
                                                   <div class="form-group local-forms">
                                                        <label>Roll </label>
                                                        <input class="form-control" type="text"
                                                             placeholder="Enter Roll Number">
                                                   </div>
                                              </div> -->
-                                        <!-- <div class="col-12 col-sm-4">
+            <!-- <div class="col-12 col-sm-4">
                                                   <div class="form-group local-forms">
                                                        <label>Blood Group <span
                                                                  class="login-danger">*</span></label>
@@ -97,7 +113,7 @@
                                                        </select>
                                                   </div>
                                              </div> -->
-                                        <!-- <div class="col-12 col-sm-4">
+            <!-- <div class="col-12 col-sm-4">
                                                   <div class="form-group local-forms">
                                                        <label>Religion </label>
                                                        <select class="form-control select">
@@ -109,28 +125,32 @@
                                                   </div>
                                              </div> -->
 
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group local-forms">
-                                                  <label>E-Mail </label>
-                                                  <input class="form-control" type="text" name="email"
-                                                       placeholder="Enter Email Address">
-                                             </div>
-                                        </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>E-Mail </label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="email"
+                  placeholder="Enter Email Address"
+                />
+              </div>
+            </div>
 
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group local-forms">
-                                                  <label>Group </label>
-                                                  <select class="form-control select" name="group">
-                                                       <option>{{data['group_name']}}</option>
-                                                       <option>Group A</option>
-                                                       <option>Group B</option>
-                                                       <option>Group C</option>
-                                                       <option>Group D</option>
-                                                       <option>Group E</option>
-                                                  </select>
-                                             </div>
-                                        </div>
-                                        <!-- <div class="col-12 col-sm-4">
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Group </label>
+                <select class="form-control select" name="group">
+                  <option>{{data['group_name']}}</option>
+                  <option>Group A</option>
+                  <option>Group B</option>
+                  <option>Group C</option>
+                  <option>Group D</option>
+                  <option>Group E</option>
+                </select>
+              </div>
+            </div>
+            <!-- <div class="col-12 col-sm-4">
                                                   <div class="form-group local-forms">
                                                        <label>Section </label>
                                                        <select class="form-control select">
@@ -148,36 +168,41 @@
                                                             placeholder="Enter Admission ID">
                                                   </div>
                                              </div> -->
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group local-forms">
-                                                  <label>Phone </label>
-                                                  <input class="form-control" type="text" name="phone"
-                                                       value="{{data['phone']}}" placeholder="{{data['phone']}}">
-                                             </div>
-                                        </div>
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group students-up-files">
-                                                  <label>Upload Student Photo (150px X 150px)</label>
-                                                  <div class="uplod">
-                                                       <label class="file-upload image-upbtn mb-0">
-                                                            Choose File <input type="file" name="photo">
-                                                       </label>
-                                                  </div>
-                                             </div>
-                                        </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Phone </label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="phone"
+                  value="{{data['phone']}}"
+                  placeholder="{{data['phone']}}"
+                />
+              </div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group students-up-files">
+                <label>Upload Student Photo (150px X 150px)</label>
+                <div class="uplod">
+                  <label class="file-upload image-upbtn mb-0">
+                    Choose File <input type="file" name="photo" />
+                  </label>
+                </div>
+              </div>
+            </div>
 
-                                        <div class="col-12">
-                                             <div class="student-submit">
-                                                  <button type="submit" class="btn btn-primary">Save Change</button>
-                                             </div>
-                                        </div>
-                                   </div>
-                              </form>
-                         </div>
-                    </div>
-               </div>
+            <div class="col-12">
+              <div class="student-submit">
+                <button type="submit" class="btn btn-primary">
+                  Save Change
+                </button>
+              </div>
+            </div>
           </div>
-     </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

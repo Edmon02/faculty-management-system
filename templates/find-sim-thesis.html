@@ -1,0 +1,163 @@
+{% extends "base.html" %} {% block title %}Student List{% endblock %} {% block
+content %}
+<div class="page-header">
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="page-sub-header">
+        <h3 class="page-title">Students</h3>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="students.html">Student</a>
+          </li>
+          <li class="breadcrumb-item active">All Students</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="student-group-form">
+  <div id="searchForm">
+    <div class="row">
+      <div class="col-lg-3 col-md-6">
+        <div class="form-group">
+          <input
+            id="searchInput"
+            type="text"
+            class="form-control"
+            name="text"
+            placeholder="Search by Thesis Name ..."
+          />
+        </div>
+      </div>
+      <div class="col-lg-2">
+        <div class="search-student-btn">
+          <button id="searchButton" type="button" class="btn btn-primary">
+            Search
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-sm-12">
+    <div class="card card-table comman-shadow">
+      <div class="card-body">
+        <div class="page-header">
+          <div class="row align-items-center">
+            <div class="col">
+              <h3 class="page-title">Students</h3>
+            </div>
+            <div class="col-auto text-end float-end ms-auto download-grp">
+              <a href="students.html" class="btn btn-outline-gray me-2 active"
+                ><i class="feather-list"></i
+              ></a>
+              <input type="hidden" name="action" value="Sort" />
+              <button
+                id="gridButton"
+                type="button"
+                class="btn btn-outline-gray me-2"
+              >
+                <i class="feather-grid"></i>
+              </button>
+              <a href="#" class="btn btn-outline-primary me-2"
+                ><i class="fas fa-download"></i> Download</a
+              >
+              <a href="add-student.html" class="btn btn-primary"
+                ><i class="fas fa-plus"></i
+              ></a>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table
+            id="studentTable"
+            class="table border-0 star-student table-hover table-center mb-0 datatable table-striped"
+          >
+            <thead class="student-thread">
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Group</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Event listener for click event on the search button
+    $("#searchButton").on("click", fetchData);
+
+    // Event listener for keyup event on the search input field
+    $("#searchInput").on("keyup", function(event) {
+        if (event.keyCode === 13) {
+            fetchData(); // Call the fetchData function when Enter key is pressed
+        }
+    });
+
+    // Event listener for input event on the search input field
+    $("#searchInput").on("input", function() {
+        fetchData(); // Call the fetchData function when the input value changes
+    });
+
+    // Function to fetch data
+    function fetchData() {
+        const query = $("#searchInput").val().trim(); // Get the value from the input field
+
+        // Perform asynchronous form submission using AJAX
+        $.ajax({
+            url: "/find-thesis",
+            type: "POST",
+            data: { text: query }, // Send the query as data
+            success: function(data) {
+                updateTable(data); // Call the function to update the table with fetched data
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching data:", xhr);
+            },
+        });
+    }
+
+    // Function to update the table with fetched data
+    function updateTable(data) {
+        console.log(data);
+        const tbody = $("#studentTable tbody"); // Select the table body
+
+        // Clear existing table rows
+        tbody.empty();
+
+        // Iterate over the fetched data and append rows to the table
+        data.forEach(function(student) {
+            const row = $("<tr>"); // Create a new table row
+            row.append("<td>" + student.id + "</td>"); // Append ID column
+            row.append(
+                "<td>" +
+                '<h2 class="table-avatar">' +
+                '<a href="student-details.html" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="data:image/jpeg;base64,' +
+                student.image +
+                '" alt="User Image" /></a>' +
+                '<a href="student-details.html">' +
+                student.first_name +
+                "</a>" +
+                "</h2>" +
+                "</td>"
+            ); // Append Name column
+            row.append("<td>" + student.group_name + "</td>"); // Append Group column
+            tbody.append(row); // Append the row to the table body
+        });
+    }
+});
+
+</script>
+
+{% endblock %}

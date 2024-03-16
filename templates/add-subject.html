@@ -1,134 +1,154 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block title %}Student List{% endblock %} {% block
+content %}
 
-{% block title %}Student List{% endblock %}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col-sm-12">
+      <div class="page-sub-header">
+        <h3 class="page-title">Add Students</h3>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item"><a href="students.html">Student</a></li>
+          <li class="breadcrumb-item active">Add Students</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 
-{% block content %}
-<div class="page-wrapper">
-     <div class="content container-fluid">
-
-          <div class="page-header">
-               <div class="row align-items-center">
-                    <div class="col-sm-12">
-                         <div class="page-sub-header">
-                              <h3 class="page-title">Add Students</h3>
-                              <ul class="breadcrumb">
-                                   <li class="breadcrumb-item"><a href="students.html">Student</a></li>
-                                   <li class="breadcrumb-item active">Add Students</li>
-                              </ul>
-                         </div>
-                    </div>
-               </div>
-          </div>
-
+<div class="row">
+  <div class="col-sm-12">
+    <div class="card comman-shadow">
+      <div class="card-body">
+        <form
+          method="POST"
+          action="{{ url_for('addSubjects') }}"
+          enctype="multipart/form-data"
+        >
           <div class="row">
-               <div class="col-sm-12">
-                    <div class="card comman-shadow">
-                         <div class="card-body">
-                              <form method="POST" action="{{ url_for('addSubjects') }}" enctype="multipart/form-data">
+            <div class="col-12">
+              <h5 class="form-title student-info">
+                Student Information
+                <span
+                  ><a href="javascript:;"
+                    ><i class="feather-more-vertical"></i></a
+                ></span>
+              </h5>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Subject Name <span class="login-danger">*</span></label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="subject_name"
+                  placeholder="Enter Subject Name"
+                />
+              </div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Group Name <span class="login-danger">*</span></label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="group_name"
+                  placeholder="Enter Group Name"
+                />
+              </div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Text <span class="login-danger">*</span></label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="messenge"
+                  placeholder="Add Some Text"
+                />
+              </div>
+            </div>
+            <div class="container mt-5">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="input-group">
+                    <input
+                      type="text"
+                      id="filterInput"
+                      class="form-control"
+                      placeholder="Filter options"
+                    />
+                  </div>
+                  <select id="selectDropdown" class="form-select mt-2">
+                    <option value="option1">Option 1</option>
+                    <option value="option2">Option 2</option>
+                    <option value="option3">Option 3</option>
+                    <option value="option4">Option 4</option>
+                    <option value="option5">Option 5</option>
+                    <option value="option6">Option 6</option>
+                  </select>
+                </div>
+              </div>
+            </div>
 
-                                   <div class="row">
-                                        <div class="col-12">
-                                             <h5 class="form-title student-info">Student Information <span><a
-                                                            href="javascript:;"><i
-                                                                 class="feather-more-vertical"></i></a></span>
-                                             </h5>
-                                        </div>
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group local-forms">
-                                                  <label>Subject Name <span class="login-danger">*</span></label>
-                                                  <input class="form-control" type="text" name="subject_name"
-                                                       placeholder="Enter Subject Name">
-                                             </div>
-                                        </div>
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group local-forms">
-                                                  <label>Group Name <span class="login-danger">*</span></label>
-                                                  <input class="form-control" type="text" name="group_name"
-                                                       placeholder="Enter Group Name">
-                                             </div>
-                                        </div>
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group local-forms">
-                                                  <label>Text <span class="login-danger">*</span></label>
-                                                  <input class="form-control" type="text" name="messenge"
-                                                       placeholder="Add Some Text">
-                                             </div>
-                                        </div>
-                                        <div class="container mt-5">
-                                             <div class="row">
-                                               <div class="col-md-6">
-                                                 <div class="input-group">
-                                                   <input type="text" id="filterInput" class="form-control" placeholder="Filter options">
-                                                 </div>
-                                                 <select id="selectDropdown" class="form-select mt-2">
-                                                   <option value="option1">Option 1</option>
-                                                   <option value="option2">Option 2</option>
-                                                   <option value="option3">Option 3</option>
-                                                   <option value="option4">Option 4</option>
-                                                   <option value="option5">Option 5</option>
-                                                   <option value="option6">Option 6</option>
-                                                 </select>
-                                               </div>
-                                             </div>
-                                           </div>
-                                           
+            <div class="col-12 col-sm-4">
+              <div class="form-group students-up-files">
+                <label id="fileLabel"></label><br />
+                <label>Upload File <10mg </label>
+                <div class="uplod">
+                  <label class="file-upload image-upbtn mb-0">
+                    Choose File
+                    <input
+                      id="fileInput"
+                      type="file"
+                      name="file"
+                      accept="application/pdf, ,application/msword"
+                      style="display: none"
+                      onchange="updateFileName()"
+                    />
+                  </label>
+                </div>
+                <div
+                  class="alert alert-danger mt-2"
+                  id="errorContainer"
+                  style="display: none"
+                ></div>
+              </div>
+            </div>
 
-                                        <div class="col-12 col-sm-4">
-                                             <div class="form-group students-up-files">
-                                                  <label id="fileLabel"></label><br>
-                                                  <label>Upload File <10mg </label>
-                                                            <div class="uplod">
-                                                                 <label class="file-upload image-upbtn mb-0">
-                                                                      Choose File <input id="fileInput" type="file"
-                                                                           name="file"
-                                                                           accept="application/pdf, ,application/msword"
-                                                                           style="display:none;"
-                                                                           onchange="updateFileName()">
-                                                                 </label>
-                                                            </div>
-                                                            <div class="alert alert-danger mt-2" id="errorContainer"
-                                                                 style="display:none;"></div>
-
-                                             </div>
-                                        </div>
-
-                                        <div class="col-12">
-                                             <div class="student-submit">
-                                                  <button type="submit" class="btn btn-primary">Submit</button>
-                                             </div>
-                                        </div>
-                                   </div>
-                              </form>
-                         </div>
-                    </div>
-               </div>
+            <div class="col-12">
+              <div class="student-submit">
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </div>
+            </div>
           </div>
-     </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 <script>
-     // Get the input element and select element
-     const filterInput = document.getElementById("filterInput");
-     const selectDropdown = document.getElementById("selectDropdown");
+  // Get the input element and select element
+  const filterInput = document.getElementById("filterInput");
+  const selectDropdown = document.getElementById("selectDropdown");
 
-     // Get all options in the select dropdown
-     const options = selectDropdown.getElementsByTagName("option");
+  // Get all options in the select dropdown
+  const options = selectDropdown.getElementsByTagName("option");
 
-     // Add an input event listener to filter options as the user types
-     filterInput.addEventListener("input", function () {
-          const filter = filterInput.value.toLowerCase();
+  // Add an input event listener to filter options as the user types
+  filterInput.addEventListener("input", function () {
+    const filter = filterInput.value.toLowerCase();
 
-          for (let i = 0; i < options.length; i++) {
-               const option = options[i];
-               const text = option.textContent.toLowerCase();
+    for (let i = 0; i < options.length; i++) {
+      const option = options[i];
+      const text = option.textContent.toLowerCase();
 
-               // Hide the option if it doesn't match the filter
-               if (text.indexOf(filter) === -1) {
-                    option.style.display = "none";
-               } else {
-                    option.style.display = "block";
-               }
-          }
-     });
-
+      // Hide the option if it doesn't match the filter
+      if (text.indexOf(filter) === -1) {
+        option.style.display = "none";
+      } else {
+        option.style.display = "block";
+      }
+    }
+  });
 </script>
 {% endblock %}

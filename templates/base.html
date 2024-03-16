@@ -82,6 +82,10 @@
       rel="stylesheet"
       href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
     />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/assets/css/chat.css') }}"
+    />
     <!-- <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/assets/css/chat.scss') }}"
@@ -145,23 +149,33 @@
         </a>
 
         <ul class="nav user-menu">
-          <!-- <li class="nav-item dropdown noti-dropdown language-drop me-2">
-                         <a href="#" class="dropdown-toggle nav-link header-nav-list" data-bs-toggle="dropdown">
-                              <img src="../static/css/assets/img/icons/header-icon-01.svg" alt="">
-                         </a>
-                         <div class="dropdown-menu ">
-                              <div class="noti-content">
-                                   <div>
-                                        <a class="dropdown-item" href="javascript:;"><i
-                                                  class="flag flag-lr me-2"></i>English</a>
-                                        <a class="dropdown-item" href="javascript:;"><i
-                                                  class="flag flag-bl me-2"></i>Francais</a>
-                                        <a class="dropdown-item" href="javascript:;"><i
-                                                  class="flag flag-cn me-2"></i>Turkce</a>
-                                   </div>
-                              </div>
-                         </div>
-                    </li> -->
+          <li class="nav-item dropdown noti-dropdown language-drop me-2">
+            <a
+              href="#"
+              class="dropdown-toggle nav-link header-nav-list"
+              data-bs-toggle="dropdown"
+            >
+              <img
+                src="../static/css/assets/img/icons/header-icon-01.svg"
+                alt=""
+              />
+            </a>
+            <div class="dropdown-menu">
+              <div class="noti-content">
+                <div>
+                  <a class="dropdown-item" href="javascript:;"
+                    ><i class="flag flag-lr me-2"></i>English</a
+                  >
+                  <a class="dropdown-item" href="javascript:;"
+                    ><i class="flag flag-bl me-2"></i>Aremnia</a
+                  >
+                  <a class="dropdown-item" href="javascript:;"
+                    ><i class="flag flag-cn me-2"></i>Russia</a
+                  >
+                </div>
+              </div>
+            </div>
+          </li>
 
           <li class="nav-item dropdown noti-dropdown me-2">
             <a
@@ -181,7 +195,7 @@
               </div>
               <div class="noti-content">
                 <ul class="notification-list">
-                  <li class="notification-message">
+                  <!-- <li class="notification-message">
                     <a href="#">
                       <div class="media d-flex">
                         <span class="avatar avatar-sm flex-shrink-0">
@@ -203,78 +217,7 @@
                         </div>
                       </div>
                     </a>
-                  </li>
-                  <li class="notification-message">
-                    <a href="#">
-                      <div class="media d-flex">
-                        <span class="avatar avatar-sm flex-shrink-0">
-                          <img
-                            class="avatar-img rounded-circle"
-                            alt="User Image"
-                            src="{{ url_for('static', filename='css/assets/img/profiles/avatar-11.jpg') }}"
-                          />
-                        </span>
-                        <div class="media-body flex-grow-1">
-                          <p class="noti-details">
-                            <span class="noti-title"
-                              >International Software Inc</span
-                            >
-                            has sent you a invoice in the amount of
-                            <span class="noti-title">$218</span>
-                          </p>
-                          <p class="noti-time">
-                            <span class="notification-time">6 mins ago</span>
-                          </p>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                  <li class="notification-message">
-                    <a href="#">
-                      <div class="media d-flex">
-                        <span class="avatar avatar-sm flex-shrink-0">
-                          <img
-                            class="avatar-img rounded-circle"
-                            alt="User Image"
-                            src="{{url_for('static', filename='css/assets/img/profiles/avatar-17.jpg')}}"
-                          />
-                        </span>
-                        <div class="media-body flex-grow-1">
-                          <p class="noti-details">
-                            <span class="noti-title">John Hendry</span> sent a
-                            cancellation request
-                            <span class="noti-title">Apple iPhone XR</span>
-                          </p>
-                          <p class="noti-time">
-                            <span class="notification-time">8 mins ago</span>
-                          </p>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                  <li class="notification-message">
-                    <a href="#">
-                      <div class="media d-flex">
-                        <span class="avatar avatar-sm flex-shrink-0">
-                          <img
-                            class="avatar-img rounded-circle"
-                            alt="User Image"
-                            src="{{ url_for('static', filename='css/assets/img/profiles/avatar-13.jpg') }}"
-                          />
-                        </span>
-                        <div class="media-body flex-grow-1">
-                          <p class="noti-details">
-                            <span class="noti-title">Mercury Software Inc</span>
-                            added a new product
-                            <span class="noti-title">Apple MacBook Pro</span>
-                          </p>
-                          <p class="noti-time">
-                            <span class="notification-time">12 mins ago</span>
-                          </p>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
+                  </li> -->
                 </ul>
               </div>
               <div class="topnav-dropdown-footer">
@@ -284,7 +227,11 @@
           </li>
 
           <li class="nav-item zoom-screen me-2">
-            <a href="#" class="nav-link header-nav-list win-maximize"  id="fullscreenIcon">
+            <a
+              href="#"
+              class="nav-link header-nav-list win-maximize"
+              id="fullscreenIcon"
+            >
               <img
                 src="{{ url_for('static', filename='css/assets/img/icons/header-icon-04.svg') }}"
                 alt=""
@@ -500,17 +447,16 @@
                   {% endif %}
                 </ul>
               </li>
-              {% endif %} {% if session['is_Lecturer'] == 'True' %} 
+              {% endif %} {% if session['is_Lecturer'] == 'True' %}
               <li class="submenu1">
                 <a
-                href="/waitingroom"
-                class="{{ 'active' if '/waitingroom' in request.path else '' }}"
-                ><i class="fa-regular fa-clock"></i
+                  href="/waitingroom"
+                  class="{{ 'active' if '/waitingroom' in request.path else '' }}"
+                  ><i class="fa-regular fa-clock"></i
                   ><span>Waiting Room</span></a
-                  >
-                </li>
-              {% endif %}
-              {% if session['type'] == 'admin' %}
+                >
+              </li>
+              {% endif %} {% if session['type'] == 'admin' %}
               <li class="submenu1">
                 <a
                   href="/add-news"
@@ -524,8 +470,11 @@
           </div>
         </div>
       </div>
-
-      {% block content %} {% endblock %}
+      <div class="page-wrapper">
+        <div class="content container-fluid">
+          {% block content %} {% endblock %}
+        </div>
+      </div>
     </div>
 
     <!-- <script src="../static/css/assets/js/jquery-3.6.0.min.js"></script>
@@ -564,6 +513,7 @@
     <script src="{{ url_for('static', filename='css/assets/plugins/select2/js/select2.min.js') }}"></script>
     <script src="{{ url_for('static', filename='css/assets/js/bootstrap-datetimepicker.min.js') }}"></script>
     <script src="{{ url_for('static', filename='css/assets/plugins/datatables/datatables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='css/assets/js/chat.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -630,6 +580,7 @@
       const today = new Date().toISOString().split("T")[0];
       document.getElementById("datePicker").setAttribute("min", today);
     </script>
+
     <script>
       // JavaScript to enable full-screen mode
       const fullscreenIcon = document.getElementById("fullscreenIcon");
@@ -650,6 +601,114 @@
 
       // Event listener for clicking the full-screen icon
       fullscreenIcon.addEventListener("click", toggleFullScreen);
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        // Function to update the HTML with the exercises information and time ago
+        function updateExercises(response) {
+          $(".notification-list").empty();
+          response.forEach(function (exercise) {
+            var message = `
+                      <li class="notification-message">
+                          <a href="/exercises"><div class="media d-flex">
+                              <span class="avatar avatar-sm flex-shrink-0">
+                                  <img class="avatar-img rounded-circle" alt="User Image" src="{{ url_for('static', filename='css/assets/img/profiles/avatar-02.jpg') }}">
+                              </span>
+                              <div class="media-body flex-grow-1">
+                                  <p class="noti-details">
+                                      <span class="noti-title">${
+                                        exercise[3]
+                                      }</span> ${exercise[4]}
+                                  </p>
+                                  <p class="noti-time" data-timestamp="${
+                                    exercise[7]
+                                  }">
+                                      <span class="notification-time">${timeAgo(
+                                        exercise[7]
+                                      )}</span>
+                                  </p>
+                              </div>
+                          </div>
+                          </a>
+                      </li>
+                  `;
+            $(".notification-list").append(message);
+          });
+        }
+
+        // Function to calculate time ago
+        function timeAgo(timestamp) {
+          var currentTime = new Date().getTime();
+          var receivedTime = timestamp; // Assuming the timestamp is in seconds
+          var elapsedTime = currentTime - receivedTime;
+          var seconds = Math.floor(elapsedTime / 1000);
+          var minutes = Math.floor(seconds / 60);
+          var hours = Math.floor(minutes / 60);
+          var days = Math.floor(hours / 24);
+          console.log(minutes);
+
+          if (days > 0) {
+            return days + " days ago";
+          } else if (hours > 0) {
+            return hours + " hours ago";
+          } else if (minutes > 0) {
+            return minutes + " minutes ago";
+          } else {
+            return "Just now";
+          }
+        }
+
+        // Function to update time every minute
+        function updateTime() {
+          $(".notification-time").each(function () {
+            var timestamp = JSON.parse(localStorage.getItem("exercisesData"));
+            $(this).text(timeAgo(timestamp));
+          });
+        }
+
+        // Function to check for changes in exercises and update the HTML
+        function checkExercisesChanges() {
+          var previousExercises =
+            JSON.parse(localStorage.getItem("exercisesData")) || [];
+          var currentTime = new Date().getTime();
+          getExercisesLocalStorage();
+          $.ajax({
+            url: "/check_exercises_changes",
+            type: "GET",
+            success: function (response) {
+              // Check if the received exercises are different from the previous ones
+              if (check(previousExercises, response)) {
+                updateExercises(response); // Call the updateExercises function with the response
+                response[0].push(currentTime);
+                localStorage.setItem("exercisesData", JSON.stringify(response)); // Store the received exercises in local storage
+              }
+            },
+          });
+        }
+
+        function check(arr1, arr2) {
+          for (var i = 0; i < arr1.length; i++) {
+            if (JSON.stringify(arr1[i]) !== JSON.stringify(arr2)) return false;
+          }
+          return true;
+        }
+
+        function getExercisesLocalStorage() {
+          var previousExercises =
+            JSON.parse(localStorage.getItem("exercisesData")) || [];
+          console.log(previousExercises);
+          updateExercises(previousExercises);
+        }
+
+        getExercisesLocalStorage();
+        // Initial call to check for exercises changes
+        checkExercisesChanges();
+
+        // Check for changes every 1 minute (60000 milliseconds)
+        setInterval(checkExercisesChanges, 60000);
+      });
     </script>
   </body>
 </html>
