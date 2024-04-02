@@ -41,7 +41,6 @@ from bokeh.plotting import figure
 from bokeh.models import DatetimeTickFormatter
 from bokeh.embed import components
 import pandas as pd
-from flask_cors import CORS, cross_origin
 import traceback
 from generate import generate
 import sqlite3
@@ -52,9 +51,6 @@ from pydub import AudioSegment
 
 
 app = Flask(__name__)
-
-
-CORS(app)
 
 # Define login form
 class LoginForm(FlaskForm):
@@ -169,7 +165,6 @@ def check_and_invalidate_session(user_id, current_ip):
 
 
 @app.route("/news", methods=["GET"])
-@cross_origin()
 def get_news():
     if request.headers.get("X-React-Frontend"):
         with get_db() as conn:
@@ -192,7 +187,6 @@ def get_news():
         return render_template("index.html")
 
 @app.route("/news/<int:id>", methods=["GET"])
-@cross_origin()
 def get_news_by_id(id):
     if request.headers.get("X-React-Frontend"):
         with get_db() as conn:
@@ -219,7 +213,6 @@ def get_news_by_id(id):
         return render_template("index.html")
 
 @app.route("/audio/<int:news_id>/<int:chunk_id>", methods=["GET"])
-@cross_origin()
 def get_audio_chunk(news_id, chunk_id):
     if request.headers.get("X-React-Frontend"):
         with get_db() as conn:
@@ -282,7 +275,6 @@ def check_user_access():
 
 
 @app.route("/", methods=["GET", "POST"])
-@cross_origin()
 @limiter.limit("10 per minute")
 def index():
     form = LoginForm()
@@ -1365,7 +1357,6 @@ def allowed_file(filename):
 
 
 @app.route("/generate_text", methods=["POST"])
-@cross_origin()
 def generate_text():
     data = request.json
     user_message = data.get("user_message")
