@@ -1,5 +1,6 @@
-{% extends "base.html" %} {% block title %}Student List{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+{% block title %}Student List{% endblock %}
+{% block content %}
 <div class="page-header">
   <div class="row">
     <div class="col-sm-12">
@@ -82,6 +83,7 @@ content %}
                 <th>ID</th>
                 <th>Name</th>
                 <th>Group</th>
+                <th>Thesis</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -153,8 +155,20 @@ $(document).ready(function() {
                 "</td>"
             ); // Append Name column
             row.append("<td>" + student.group_name + "</td>"); // Append Group column
+            let thesisText = student.thesis;
+            if (thesisText.split(' ').length > 5) {
+                thesisText = thesisText.split(' ').slice(0, 5).join(' ') + '...'; // Truncate text if more than 5 words
+                row.append(`<td><span class="truncated-text" onclick="expandText(this)">${thesisText}</span></td>`);
+            } else {
+                row.append("<td>" + thesisText + "</td>"); // Append Group column
+            }
             tbody.append(row); // Append the row to the table body
         });
+    }
+
+    // Function to expand truncated text
+    function expandText(element) {
+        $(element).text($(element).text().replace('...', '')).css('cursor', 'auto').off('click');
     }
 });
 

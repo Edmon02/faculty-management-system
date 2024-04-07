@@ -52,13 +52,18 @@ from pydub import AudioSegment
 
 app = Flask(__name__)
 
+
+CORS(app)
+
 # Define login form
 class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    username = StringField("Username", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+
 
 def random_numbers(length):
     return "".join(str(random.randint(0, 9)) for _ in range(length))
+
 
 def random_password(length):
     return "".join(random.choices(string.ascii_letters + string.digits, k=length))
@@ -119,7 +124,7 @@ cur_dir = os.path.dirname(__file__)
 DATABASE = os.path.join(cur_dir, "pulpit.sqlite")
 
 # Set secure configurations
-app.config['SESSION_COOKIE_SECURE'] = True
+app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -186,6 +191,7 @@ def get_news():
     else:
         return render_template("index.html")
 
+
 @app.route("/news/<int:id>", methods=["GET"])
 def get_news_by_id(id):
     if request.headers.get("X-React-Frontend"):
@@ -194,9 +200,6 @@ def get_news_by_id(id):
             cursor.execute("SELECT * FROM News WHERE id = ? ORDER BY date DESC", (id,))
             column_names = [description[0] for description in cursor.description]
             news = [dict(zip(column_names, row)) for row in cursor.fetchall()]
-            cursor.execute("SELECT audio_data FROM audio_chunk WHERE chunk_id = 1")
-            column_names = [description[0] for description in cursor.description]
-            audio_data = [dict(zip(column_names, row)) for row in cursor.fetchall()]
             # Convert image data to base64
             for item in news:
                 if "cover" in item:
@@ -213,6 +216,7 @@ def get_news_by_id(id):
         return render_template("index.html")
 
 @app.route("/audio/<int:news_id>/<int:chunk_id>", methods=["GET"])
+@cross_origin()
 def get_audio_chunk(news_id, chunk_id):
     if request.headers.get("X-React-Frontend"):
         with get_db() as conn:
@@ -235,9 +239,11 @@ def get_audio_chunk(news_id, chunk_id):
 def page_not_found(e):
     return render_template("404.html"), 404
 
+
 @app.errorhandler(429)
 def rate_limit_exceeded(error):
     return render_template("404.html"), 429
+
 
 restricted_routes = {
     "student": [
@@ -279,7 +285,7 @@ def check_user_access():
 def index():
     form = LoginForm()
     validate = bool(form.username.data and form.password.data)
-    
+
     if request.method == "POST" and validate:
         username, password = form.username.data, form.password.data
 
@@ -287,20 +293,34 @@ def index():
             cursor = conn.cursor()
 
             # Check if the user is blocked due to consecutive failed attempts
-            cursor.execute("SELECT failed_attempts, last_failed_attempt FROM Users WHERE username = ?", (username,))
+            cursor.execute(
+                "SELECT failed_attempts, last_failed_attempt FROM Users WHERE username = ?",
+                (username,),
+            )
             result = cursor.fetchone()
-            if result:
+
+            if result[1]:
                 failed_attempts, last_failed_attempt_str = result
-                last_failed_attempt = datetime.strptime(last_failed_attempt_str, '%Y-%m-%d %H:%M:%S.%f')
-                if failed_attempts >= 3 and last_failed_attempt + timedelta(minutes=30) > datetime.now():
-                    return jsonify({"message": "User is blocked. Try again later."}), 403
-            
+                last_failed_attempt = datetime.strptime(
+                    last_failed_attempt_str, "%Y-%m-%d %H:%M:%S.%f"
+                )
+                if (
+                    failed_attempts >= 3
+                    and last_failed_attempt + timedelta(minutes=30) > datetime.now()
+                ):
+                    return (
+                        jsonify({"message": "User is blocked. Try again later."}),
+                        403,
+                    )
+
             query = "SELECT * FROM Users WHERE username = ? AND password = ?"
             cursor.execute(query, (username, password))
             result = cursor.fetchone()
 
             if result:
-                user_data = dict(zip([description[0] for description in cursor.description], result))
+                user_data = dict(
+                    zip([description[0] for description in cursor.description], result)
+                )
 
                 query = (
                     "SELECT * FROM Student WHERE id = ?"
@@ -321,39 +341,57 @@ def index():
 
                 if result and data:
                     # Reset failed login attempts
-                    cursor.execute("UPDATE Users SET failed_attempts = 0 WHERE username = ?", (username,))
+                    cursor.execute(
+                        "UPDATE Users SET failed_attempts = 0 WHERE username = ?",
+                        (username,),
+                    )
                     conn.commit()
 
                     user_id = data["id"]
                     current_month = datetime.now().strftime("%Y-%m")
-                    cursor.execute("SELECT date FROM ActivityLog WHERE date = ?", (current_month,))
+                    cursor.execute(
+                        "SELECT date FROM ActivityLog WHERE date = ?", (current_month,)
+                    )
                     activity_log_id = cursor.fetchone()
 
                     if activity_log_id:
-                        cursor.execute("UPDATE ActivityLog SET activity_count = activity_count + 1 WHERE date = ?", (current_month,))
+                        cursor.execute(
+                            "UPDATE ActivityLog SET activity_count = activity_count + 1 WHERE date = ?",
+                            (current_month,),
+                        )
                     else:
-                        cursor.execute("INSERT INTO ActivityLog (date) VALUES (?)", (current_month,))
+                        cursor.execute(
+                            "INSERT INTO ActivityLog (date) VALUES (?)",
+                            (current_month,),
+                        )
 
                     current_ip = request.remote_addr
 
-                    session.update({
-                        "logged_in": True,
-                        "type": user_data["type"],
-                        "first_name": data["first_name"],
-                        "last_name": data["last_name"],
-                        "is_Admin": data["is_Admin"],
-                        "is_Lecturer": data["is_Lecturer"],
-                        "ID": user_id,
-                        "user_ip": current_ip,
-                        "group_ids": group_ids if isinstance(group_ids, list) else (group_ids,),
-                    })
+                    session.update(
+                        {
+                            "logged_in": True,
+                            "type": user_data["type"],
+                            "first_name": data["first_name"],
+                            "last_name": data["last_name"],
+                            "is_Admin": data["is_Admin"],
+                            "is_Lecturer": data["is_Lecturer"],
+                            "ID": user_id,
+                            "user_ip": current_ip,
+                            "group_ids": group_ids
+                            if isinstance(group_ids, list)
+                            else (group_ids,),
+                        }
+                    )
 
                     return jsonify({"message": "Login successful"})
                 else:
                     return jsonify({"message": "Incorrect username or password"}), 500
             else:
                 # Increment failed attempts counter and update last failed attempt timestamp
-                cursor.execute("UPDATE Users SET failed_attempts = failed_attempts + 1, last_failed_attempt = ? WHERE username = ?", (datetime.now(), username))
+                cursor.execute(
+                    "UPDATE Users SET failed_attempts = failed_attempts + 1, last_failed_attempt = ? WHERE username = ?",
+                    (datetime.now(), username),
+                )
                 conn.commit()
                 return jsonify({"message": "Incorrect username or password"}), 500
 
@@ -661,7 +699,7 @@ def addStudent():
             picture_data = base64.b64encode(image_data)
             # If no photo was uploaded, use a default photo
             # db.students.insert_one({'photo_path': 'default.png'})
-        print(dob)
+        # print(dob)
         student_data = {
             "first_name": first_name,
             "last_name": last_name,
@@ -895,26 +933,42 @@ def teachers():
     return render_template("teachers.html", data=lecturer_data)
 
 
-def add_file(subject_id, file_name):
+def add_file(subject_id, file_name, file):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    check_subj = "SELECT COUNT(*) FROM SubjectFile WHERE subject_id AND "
 
-    # Check if the record already exists
-    check_query = "SELECT COUNT(*) FROM Files WHERE subject_id = ? AND file_name = ?"
-    cursor.execute(check_query, (subject_id, file_name))
-    record_exists = cursor.fetchone()
-    if not record_exists[-1]:
-        add_file_query = (
-            "INSERT OR IGNORE INTO Files (subject_id, file, file_name) VALUES (?, ?, ?)"
+    # Check if the file exists in the Files table
+    check_file_query = "SELECT id FROM Files WHERE file_name = ?"
+    cursor.execute(check_file_query, (file_name,))
+    file_record = cursor.fetchone()
+
+    if file_record:
+        file_id = file_record[0]
+    else:
+        insert_file_query = "INSERT INTO Files (file, file_name) VALUES (?, ?)"
+        cursor.execute(insert_file_query, (file, file_name))
+        file_id = cursor.lastrowid
+        conn.commit()
+
+    # Check if the connection exists in the SubjectFile table
+    check_connection_query = (
+        "SELECT COUNT(*) FROM SubjectFile WHERE subject_id = ? AND file_id = ?"
+    )
+    cursor.execute(check_connection_query, (subject_id, file_id))
+    connection_exists = cursor.fetchone()[0]
+
+    if connection_exists:
+        conn.close()
+        return f"Connection between subject ID {subject_id} and file '{file_name}' already exists."
+    else:
+        # Insert the connection into the SubjectFile table
+        insert_connection_query = (
+            "INSERT INTO SubjectFile (subject_id, file_id) VALUES (?, ?)"
         )
-        cursor.execute(add_file_query, (subject_id, file, file_name))
-        record_exists = cursor.lastrowid
-
-    add_subj_file = "INSERT OR"
-
-    cursor.close()
-    conn.close()
+        cursor.execute(insert_connection_query, (subject_id, file_id))
+        conn.commit()
+        conn.close()
+        return f"Connection between subject ID {subject_id} and file '{file_name}' added successfully."
 
 
 @app.route("/subjects", methods=["GET", "POST"])
@@ -1070,7 +1124,6 @@ def addExercise():
         subject_name = request.form["subject_name"]
         file = request.files["file"].read()
         file_name = request.files["file"].filename
-        group_id = 1
 
         conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor()
@@ -1079,15 +1132,35 @@ def addExercise():
         cursor.execute(subject_id_query, (subject_name,))
         subject_id = cursor.fetchone()[0]
 
-        # add_file(subject_id, file_name)
+        add_file(subject_id, file_name, file)
 
         # print(end_time)
         delta = datetime.now() - end_time
         expiry_time = (datetime.now() + delta).strftime("%Y-%m-%d")
-        datas = (expiry_time, group_name, messenge, subject_name, file_name)
-        query = "INSERT INTO Exercises (expiry_time, group_name, messenge, subject_name, file_name) VALUES (?, ?, ?, ?, ?)"
-        # query1 = "INSERT INTO ExerciseStudent (group_id) VALUES (?)"
+        # Insert data into Exercises table
+        datas = (expiry_time, messenge, subject_name, file_name)
+        query = "INSERT INTO Exercises (expiry_time, messenge, subject_name, file_name) VALUES (?, ?, ?, ?)"
         cursor.execute(query, datas)
+
+        # Get the exercise_id of the newly inserted row
+        exercise_id = cursor.lastrowid
+
+        # Check if the data already exists in ExercisesGroup table
+        query_check = "SELECT COUNT(*) FROM ExercisesGroup WHERE exercise_id = ? AND group_name = ?"
+        cursor.execute(query_check, (exercise_id, group_name))
+        existing_data_count = cursor.fetchone()[0]
+
+        if existing_data_count == 0:
+            # Insert data into ExercisesGroup table
+            query_insert = (
+                "INSERT INTO ExercisesGroup (exercise_id, group_name) VALUES (?, ?)"
+            )
+            cursor.execute(query_insert, (exercise_id, group_name))
+            conn.commit()
+            print("Data inserted into ExercisesGroup table.")
+        else:
+            print("Data already exists in ExercisesGroup table.")
+
         # cursor.execute(query1, datas)
         conn.commit()
         conn.close()
@@ -1383,78 +1456,155 @@ def generate_text():
 
         # Return the error response with a specific status code (e.g., 500 for internal server error)
         return jsonify(error_response), 500
-    
+
+
 @app.route("/chatbot", methods=["GET", "POST"])
 def chatbot():
     return render_template("chatbot.html")
+
 
 # Function to query the database for changes in the Exercises table for a specific group
 def check_exercises_changes(group_name):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Exercises WHERE group_name = ? AND checkkType = 0", (group_name,))
+    cursor.execute(
+        "SELECT * FROM Exercises WHERE group_name = ? AND checkkType = 0", (group_name,)
+    )
     exercises = cursor.fetchall()
     conn.close()
     return exercises
 
+
 # Route to handle AJAX request for checking changes in Exercises table
-@app.route('/check_exercises_changes', methods=['GET'])
+@app.route("/check_exercises_changes", methods=["GET"])
 def check_exercises_changes_route():
-    if session.get('group_ids', None):
-        group_name = session['group_ids'][0]  # Change this to your group name or get it from the frontend
+    if session.get("group_ids", None):
+        group_name = session["group_ids"][
+            0
+        ]  # Change this to your group name or get it from the frontend
         exercises = check_exercises_changes(group_name)
         return jsonify(exercises)
     return jsonify("you are not loged"), 500
 
 
-@app.route('/find-thesis', methods=['GET', 'POST'])
+@app.route("/find-thesis", methods=["GET", "POST"])
 def find_thesis():
-    if request.method == 'POST':
+    if request.method == "POST":
         large_text = request.form["text"]
-        conn = sqlite3.connect('pulpit.sqlite')
-        cursor = conn.cursor()
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
 
-        # Retrieve topics from the 'Thesis' table
-        cursor.execute("SELECT * FROM Thesis")
-        topics = cursor.fetchall()
-        stop_words = set(["այդ", "այլ", "այն", "այս", "դու", "դուք", "եմ", "են", "ենք", "ես", "եք", "է", "էի", "էին", "էինք", "էիր", "էիք", "էր", "ըստ", "թ", "ի", "ին", "իսկ", "իր", "կամ", "համար", "հետ", "հետո", "մենք", "մեջ", "մի", "ն", "նա", "նաև", "նրա", "նրանք", "որ", "որը", "որոնք", "որպես", "ու", "ում", "պիտի", "վրա", "և"])
+            cursor.execute("SELECT * FROM Thesis")
+            thesis_data = cursor.fetchall()
 
-        # Preprocess topics
-        preprocessed_topics = [' '.join([word for word in topic[0].split() if word.lower() not in stop_words]) for topic in topics]
-
-        # Tokenize and preprocess the large text
-        large_text_sentences = sent_tokenize(large_text)
-        preprocessed_large_text = ' '.join([word for word in large_text.split() if word.lower() not in stop_words])
-
-        # Create TF-IDF vectors for large text and topics
-        vectorizer = TfidfVectorizer()
-        tfidf_matrix_large_text = vectorizer.fit_transform([preprocessed_large_text] + preprocessed_topics)
-        cosine_similarities = cosine_similarity(tfidf_matrix_large_text[0], tfidf_matrix_large_text[1:])
-
-        # Set a similarity threshold (adjust as needed)
-        similarity_threshold = 0.5
-
-        # Identify topics with high similarity scores
-        similar_topics = [topics[i][1] for i, score in enumerate(cosine_similarities[0]) if score > similarity_threshold]
-        data_student = []
-        if similar_topics:
-            query = "SELECT * FROM Student WHERE id in ({})".format(
-                ",".join("?" for _ in similar_topics)
+            stop_words = set(
+                [
+                    "այդ",
+                    "այլ",
+                    "այն",
+                    "այս",
+                    "դու",
+                    "դուք",
+                    "եմ",
+                    "են",
+                    "ենք",
+                    "ես",
+                    "եք",
+                    "է",
+                    "էի",
+                    "էին",
+                    "էինք",
+                    "էիր",
+                    "էիք",
+                    "էր",
+                    "ըստ",
+                    "թ",
+                    "ի",
+                    "ին",
+                    "իսկ",
+                    "իր",
+                    "կամ",
+                    "համար",
+                    "հետ",
+                    "հետո",
+                    "մենք",
+                    "մեջ",
+                    "մի",
+                    "ն",
+                    "նա",
+                    "նաև",
+                    "նրա",
+                    "նրանք",
+                    "որ",
+                    "որը",
+                    "որոնք",
+                    "որպես",
+                    "ու",
+                    "ում",
+                    "պիտի",
+                    "վրա",
+                    "և",
+                ]
             )
-            cursor.execute("SELECT * FROM Student")
-            cursor.execute(query, similar_topics)
-            # Get the column names
-            column_names = [description[0] for description in cursor.description]
+            preprocessed_topics = [
+                " ".join(
+                    [
+                        word
+                        for word in topic[0].split()
+                        if word.lower() not in stop_words
+                    ]
+                )
+                for topic in thesis_data
+            ]
+            preprocessed_large_text = " ".join(
+                [word for word in large_text.split() if word.lower() not in stop_words]
+            )
 
-            # Fetch the results
-            data_student = [dict(zip(column_names, row)) for row in cursor.fetchall()]
-            for item in data_student:
-                if "image" in item:
-                    item["image"] = base64.b64encode(item["image"]).decode("utf-8")
-        # Close the database connection
-        conn.close()
+            vectorizer = TfidfVectorizer()
+            tfidf_matrix_large_text = vectorizer.fit_transform(
+                [preprocessed_large_text] + preprocessed_topics
+            )
+            cosine_similarities = cosine_similarity(
+                tfidf_matrix_large_text[0], tfidf_matrix_large_text[1:]
+            )
+            similarity_threshold = 0.5
+
+            similar_topics = [
+                thesis_data[i][1]
+                for i, score in enumerate(cosine_similarities[0])
+                if score > similarity_threshold
+            ]
+            data_student = []
+
+            if similar_topics:
+                query = "SELECT * FROM Student WHERE id IN ({})".format(
+                    ",".join("?" for _ in similar_topics)
+                )
+                cursor.execute(query, similar_topics)
+
+                column_names_student = [
+                    description[0] for description in cursor.description
+                ]
+                data_student = [
+                    dict(zip(column_names_student, row)) for row in cursor.fetchall()
+                ]
+
+                # Add thesis data to data_student
+                thesis_mapping = {row[1]: row[0] for row in thesis_data}
+                for student in data_student:
+                    student_id = student["id"]
+                    thesis_id = thesis_mapping.get(student_id)
+                    if thesis_id:
+                        student["thesis"] = thesis_id
+
+                for item in data_student:
+                    if "image" in item:
+                        item["image"] = base64.b64encode(item["image"]).decode("utf-8")
+
         return jsonify(data_student)
+
     return render_template("find-sim-thesis.html")
+
 
 # Lecturer:
 # fYRKVPTdzm
