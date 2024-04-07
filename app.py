@@ -36,7 +36,7 @@ from datetime import datetime, timedelta
 import urllib.parse
 from collections import defaultdict
 import time
-import plotly.express as px
+# import plotly.express as px
 from bokeh.plotting import figure
 from bokeh.models import DatetimeTickFormatter
 from bokeh.embed import components
@@ -47,7 +47,7 @@ import sqlite3
 from nltk.tokenize import sent_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from pydub import AudioSegment
+# from pydub import AudioSegment
 
 
 app = Flask(__name__)
