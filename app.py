@@ -40,13 +40,13 @@ import time
 from bokeh.plotting import figure
 from bokeh.models import DatetimeTickFormatter
 from bokeh.embed import components
-import pandas as pd
+# import pandas as pd
 import traceback
 from generate import generate
 import sqlite3
-from nltk.tokenize import sent_tokenize
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+# from nltk.tokenize import sent_tokenize
+# from sklearn.feature_extraction.text import TfidfVectorizer
+# from sklearn.metrics.pairwise import cosine_similarity
 # from pydub import AudioSegment
 
 
