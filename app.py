@@ -52,9 +52,6 @@ from pydub import AudioSegment
 
 app = Flask(__name__)
 
-
-CORS(app)
-
 # Define login form
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
@@ -216,7 +213,6 @@ def get_news_by_id(id):
         return render_template("index.html")
 
 @app.route("/audio/<int:news_id>/<int:chunk_id>", methods=["GET"])
-@cross_origin()
 def get_audio_chunk(news_id, chunk_id):
     if request.headers.get("X-React-Frontend"):
         with get_db() as conn:
