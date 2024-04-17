@@ -211,11 +211,11 @@ content %}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
   // Load the Plotly graph using the JSON data
-  var graphDiv = document.getElementById('user-activity-graph');
-  console.log({{ graph_json | safe }});
-
-  Plotly.react(graphDiv, {{ graph_json | safe }}, {});
+  var graphDiv = document.getElementById("user-activity-graph");
+  var graphData = JSON.parse("{{ graph_json | safe }}");
+  Plotly.react(graphDiv, graphData, {});
 </script>
+
 <script
   src="https://cdn.bokeh.org/bokeh/release/bokeh-3.3.0.min.js"
   crossorigin="anonymous"

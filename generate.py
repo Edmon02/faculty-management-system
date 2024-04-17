@@ -1,12 +1,13 @@
 import os
 from text_generation import Client
 from dotenv import load_dotenv
+from huggingface_hub import InferenceClient
 
-load_dotenv()
+# load_dotenv()
 
 API_URL = os.environ.get("API_URL", None)
 API_TOKEN = os.environ.get("API_TOKEN", None)
-client = Client(API_URL, headers={"Authorization": f"Bearer {API_TOKEN}"})
+client = InferenceClient(API_URL, headers={"Authorization": f"Bearer {API_TOKEN}"})
 
 
 corpus_of_documents = [
@@ -34,22 +35,22 @@ def return_response(query, corpus):
 
 
 def format_prompt(message, history):
-    # prompt = "<s>"
-    # for user_prompt, bot_response in history:
-    #     prompt += f"[INST] {user_prompt} [/INST]"
-    #     prompt += f" {bot_response}</s> "
-    # prompt += "</s>"
+    prompt = "<s>"
+    for user_prompt, bot_response in history:
+        prompt += f"[INST] {user_prompt} [/INST]"
+        prompt += f" {bot_response}</s> "
+    prompt += f"[INST] {message} [/INST]"
     # print(return_response(message, corpus_of_documents))
-    prompt = (
-        f"Context information is below.\n "
-        "-------------------------\n"
-        f"relevant data: {return_response(message, corpus_of_documents)} "
-        "-------------------------\n"
-        "Using both the context information and also using your own knowledge,"
-        "answer the query.\n"
-        f"Query: {message}"
-        "Answer:"
-    )
+    # prompt = (
+    #     f"Context information is below.\n "
+    #     "-------------------------\n"
+    #     f"relevant data: {return_response(message, corpus_of_documents)} "
+    #     "-------------------------\n"
+    #     "Using both the context information and also using your own knowledge,"
+    #     "answer the query.\n"
+    #     f"Query: {message}"
+    #     "Answer:"
+    # )
 
     # prompt += f"[INST] {message} [/INST]"
     return prompt
@@ -79,10 +80,8 @@ def generate(
     )
 
     formatted_prompt = format_prompt(prompt, chatbot)
+    stream = client.text_generation(formatted_prompt, **generate_kwargs, stream=True, details=True, return_full_text=False)
 
-    stream = client.generate_stream(
-        formatted_prompt, **generate_kwargs, return_full_text=False
-    )
     output = ""
     for idx, response in enumerate(stream):
         if response.token.text == "":

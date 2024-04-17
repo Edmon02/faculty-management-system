@@ -1,14 +1,35 @@
-{% extends "base.html" %} {% block title %}Student List{% endblock %} {% block
-content %}
+{% extends "base.html" %} {% block title %}Add Subject{% endblock %} {% block
+link %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/multi-select-tag.css') }}"
+/>
+<script src="/static/js/multi-select-tag.js"></script>
+{% endblock %} {% block content %}
+<style lang="scss">
+  #resultBox {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    cursor: pointer;
+    border-radius: 0.25rem;
+    padding: 2%;
+    margin-bottom: 15%;
+    position: absolute;
+    z-index: 1000;
+  }
+</style>
 
 <div class="page-header">
   <div class="row align-items-center">
     <div class="col-sm-12">
       <div class="page-sub-header">
-        <h3 class="page-title">Add Students</h3>
+        <h3 class="page-title">Add Subject</h3>
         <ul class="breadcrumb">
-          <li class="breadcrumb-item"><a href="students.html">Student</a></li>
-          <li class="breadcrumb-item active">Add Students</li>
+          <li class="breadcrumb-item">
+            <a id="subject-link" href="#">Subjects</a>
+          </li>
+          <li class="breadcrumb-item active">Add Subject</li>
         </ul>
       </div>
     </div>
@@ -67,9 +88,25 @@ content %}
                 />
               </div>
             </div>
-            <div class="container mt-5">
-              <div class="row">
-                <div class="col-md-6">
+
+            <div class="col-12 col-sm-4">
+              <div class="">
+                <select name="countries" id="countries" multiple>
+                  <optgroup label="Asia">
+                    <option value="1">ՏՏ018</option>
+                    <option value="2">ՏՏ019</option>
+                    <option value="3">ՏՏ020</option>
+                    <option value="4">ՏՏ021</option>
+                    <option value="5">ՏՏ022</option>
+                    <option value="6">ՏՏ023</option>
+                    <option value="7">ՏՏ024</option>
+                    <option value="8">ՏՏ025</option>
+                  </optgroup>
+                  <option value="9">Germany</option>
+                  <option value="10">Canada</option>
+                  <option value="11">Russia</option>
+                </select>
+                <!-- <div class="col-md-12">
                   <div class="input-group">
                     <input
                       type="text"
@@ -78,15 +115,8 @@ content %}
                       placeholder="Filter options"
                     />
                   </div>
-                  <select id="selectDropdown" class="form-select mt-2">
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
-                    <option value="option4">Option 4</option>
-                    <option value="option5">Option 5</option>
-                    <option value="option6">Option 6</option>
-                  </select>
-                </div>
+                  <div id="resultBox" class="mt-2"></div>
+                </div> -->
               </div>
             </div>
 
@@ -126,29 +156,76 @@ content %}
     </div>
   </div>
 </div>
-<script>
-  // Get the input element and select element
+
+<!-- <script>
+  // Get references to the filter input and result box
   const filterInput = document.getElementById("filterInput");
-  const selectDropdown = document.getElementById("selectDropdown");
+  const resultBox = document.getElementById("resultBox");
+  // Options for demonstration
+  const options = [
+    "Option 1",
+    "Option 2",
+    "Option 3",
+    "Option 4",
+    "Option 5",
+    "Option 6",
+  ];
 
-  // Get all options in the select dropdown
-  const options = selectDropdown.getElementsByTagName("option");
+  let selectedOptions = []; // Array to store selected options
 
-  // Add an input event listener to filter options as the user types
+  // Function to close the result box
+  function closeResultBox() {
+    resultBox.style.display = "none";
+  }
+
+  // Add event listener to the filter input for input event
   filterInput.addEventListener("input", function () {
-    const filter = filterInput.value.toLowerCase();
+    const filterValue = filterInput.value.toLowerCase(); // Get filter input value
 
-    for (let i = 0; i < options.length; i++) {
-      const option = options[i];
-      const text = option.textContent.toLowerCase();
+    // Filter options based on filter value
+    const filteredOptions = options.filter((option) =>
+      option.toLowerCase().includes(filterValue)
+    );
 
-      // Hide the option if it doesn't match the filter
-      if (text.indexOf(filter) === -1) {
-        option.style.display = "none";
-      } else {
-        option.style.display = "block";
-      }
+    // Clear previous results
+    resultBox.innerHTML = "";
+
+    // Display filtered options in the result box
+    filteredOptions.forEach((option) => {
+      const optionElement = document.createElement("div");
+      optionElement.textContent = option;
+      optionElement.classList.add("filtered-option");
+      resultBox.style.display = "block";
+
+      optionElement.addEventListener("click", function () {
+        // Toggle selection
+        if (selectedOptions.includes(option)) {
+          selectedOptions = selectedOptions.filter((item) => item !== option);
+        } else {
+          selectedOptions.push(option);
+        }
+
+        // Update input field value with selected options
+        filterInput.value = selectedOptions.join(", ");
+
+        // Clear the result box
+        resultBox.innerHTML = "";
+
+        // Close the result box
+        closeResultBox();
+      });
+      resultBox.appendChild(optionElement);
+    });
+  });
+
+  // Add event listener to document to close result box when clicking outside of it
+  document.addEventListener("click", function (event) {
+    if (!resultBox.contains(event.target) && event.target !== filterInput) {
+      closeResultBox();
     }
   });
+</script> -->
+<script>
+  new MultiSelectTag("countries"); // id
 </script>
 {% endblock %}

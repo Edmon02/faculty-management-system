@@ -2,55 +2,47 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    session,
-    make_response,
-    flash,
-    get_flashed_messages,
-    jsonify,
-    g,
-)
-from flask_wtf import FlaskForm
+import base64
+import hashlib
+import mimetypes
+import os
+import random
+import secrets
+import sqlite3
+import string
+import time
+import traceback
+import urllib.parse
+from collections import defaultdict
+from datetime import datetime, timedelta
+from io import BytesIO
+
+import pandas as pd
+from bokeh.embed import components
+from bokeh.models import DatetimeTickFormatter
+
+# import plotly.express as px
+from bokeh.plotting import figure
+from flask import Flask, g, jsonify, make_response, redirect, render_template, request, session, url_for
+from flask_cors import CORS, cross_origin
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from wtforms import StringField, PasswordField
-from wtforms.validators import DataRequired
-import random
-import string
-import hashlib
-import secrets
-import base64
-from io import BytesIO
-import os
+from flask_wtf import FlaskForm
+from nltk.tokenize import sent_tokenize
 
 # from werkzeug.utils import secure_filename
 from openpyxl import Workbook
-import mimetypes
-import sqlite3
-from datetime import datetime, timedelta
-import urllib.parse
-from collections import defaultdict
-import time
-# import plotly.express as px
-from bokeh.plotting import figure
-from bokeh.models import DatetimeTickFormatter
-from bokeh.embed import components
-# import pandas as pd
-import traceback
-from generate import generate
-import sqlite3
-# from nltk.tokenize import sent_tokenize
-# from sklearn.feature_extraction.text import TfidfVectorizer
-# from sklearn.metrics.pairwise import cosine_similarity
-# from pydub import AudioSegment
+from pydub import AudioSegment
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from wtforms import PasswordField, StringField
+from wtforms.validators import DataRequired
 
+from generate import generate
 
 app = Flask(__name__)
+CORS(app, origins=["http://localhost:3000/"])
+
 
 # Define login form
 class LoginForm(FlaskForm):
@@ -173,9 +165,7 @@ def get_news():
             cursor = conn.cursor()
 
             # Fetch news data with a limit of num_items
-            cursor.execute(
-                "SELECT id, category, title, date, cover FROM News ORDER BY date DESC"
-            )
+            cursor.execute("SELECT id, category, title, date, cover FROM News ORDER BY date DESC")
             column_names = [description[0] for description in cursor.description]
             news = [dict(zip(column_names, row)) for row in cursor.fetchall()]
 
@@ -212,12 +202,16 @@ def get_news_by_id(id):
     else:
         return render_template("index.html")
 
+
 @app.route("/audio/<int:news_id>/<int:chunk_id>", methods=["GET"])
 def get_audio_chunk(news_id, chunk_id):
     if request.headers.get("X-React-Frontend"):
         with get_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT audio_data FROM audio_chunk WHERE news_id = ? AND chunk_id = ?", (news_id, chunk_id))
+            cursor.execute(
+                "SELECT audio_data FROM audio_chunk WHERE news_id = ? AND chunk_id = ?",
+                (news_id, chunk_id),
+            )
             column_names = [description[0] for description in cursor.description]
             audio_chunk = [dict(zip(column_names, row)) for row in cursor.fetchall()]
             for item in audio_chunk:
@@ -228,6 +222,7 @@ def get_audio_chunk(news_id, chunk_id):
             return jsonify(audio_chunk)
     else:
         return render_template("index.html")
+
 
 # Define a list of restricted routes for students
 # Register the custom 404 error handler
@@ -278,13 +273,12 @@ def check_user_access():
 
 @app.route("/", methods=["GET", "POST"])
 @limiter.limit("10 per minute")
+@cross_origin()
 def index():
     form = LoginForm()
     validate = bool(form.username.data and form.password.data)
-
     if request.method == "POST" and validate:
         username, password = form.username.data, form.password.data
-
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
 
@@ -297,13 +291,8 @@ def index():
 
             if result[1]:
                 failed_attempts, last_failed_attempt_str = result
-                last_failed_attempt = datetime.strptime(
-                    last_failed_attempt_str, "%Y-%m-%d %H:%M:%S.%f"
-                )
-                if (
-                    failed_attempts >= 3
-                    and last_failed_attempt + timedelta(minutes=30) > datetime.now()
-                ):
+                last_failed_attempt = datetime.strptime(last_failed_attempt_str, "%Y-%m-%d %H:%M:%S.%f")
+                if failed_attempts >= 3 and last_failed_attempt + timedelta(minutes=30) > datetime.now():
                     return (
                         jsonify({"message": "User is blocked. Try again later."}),
                         403,
@@ -314,15 +303,9 @@ def index():
             result = cursor.fetchone()
 
             if result:
-                user_data = dict(
-                    zip([description[0] for description in cursor.description], result)
-                )
+                user_data = dict(zip([description[0] for description in cursor.description], result))
 
-                query = (
-                    "SELECT * FROM Student WHERE id = ?"
-                    if user_data["type"] == "student"
-                    else "SELECT * FROM Lecturer WHERE id = ?"
-                )
+                query = "SELECT * FROM Student WHERE id = ?" if user_data["type"] == "student" else "SELECT * FROM Lecturer WHERE id = ?"
 
                 cursor.execute(query, (user_data["_id"],))
                 column_names = [description[0] for description in cursor.description]
@@ -345,9 +328,7 @@ def index():
 
                     user_id = data["id"]
                     current_month = datetime.now().strftime("%Y-%m")
-                    cursor.execute(
-                        "SELECT date FROM ActivityLog WHERE date = ?", (current_month,)
-                    )
+                    cursor.execute("SELECT date FROM ActivityLog WHERE date = ?", (current_month,))
                     activity_log_id = cursor.fetchone()
 
                     if activity_log_id:
@@ -373,9 +354,7 @@ def index():
                             "is_Lecturer": data["is_Lecturer"],
                             "ID": user_id,
                             "user_ip": current_ip,
-                            "group_ids": group_ids
-                            if isinstance(group_ids, list)
-                            else (group_ids,),
+                            "group_ids": group_ids if isinstance(group_ids, list) else (group_ids,),
                         }
                     )
 
@@ -434,10 +413,7 @@ def get_user_activity_data():
     results = cursor.fetchall()
 
     # Convert results to a list of dictionaries
-    user_data = [
-        {"date": date, "activity_count": activity_count}
-        for date, activity_count in results
-    ]
+    user_data = [{"date": date, "activity_count": activity_count} for date, activity_count in results]
 
     cursor.close()
     conn.close()
@@ -571,9 +547,7 @@ def dashboard():
         p.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
 
         # Plot the line
-        p.line(
-            user_data["date"], user_data["activity_count"], legend_label="User Activity"
-        )
+        p.line(user_data["date"], user_data["activity_count"], legend_label="User Activity")
 
         # Customize the plot if needed
         p.legend.location = "top_left"
@@ -595,9 +569,7 @@ def studentsList():
         cursor = conn.cursor()
 
         # Retrieve student data from SQLite based on group_id
-        query = "SELECT * FROM Student WHERE group_name in ({})".format(
-            ",".join("?" for _ in group_ids)
-        )
+        query = "SELECT * FROM Student WHERE group_name in ({})".format(",".join("?" for _ in group_ids))
         cursor.execute(query, group_ids)
         # Get the column names
         column_names = [description[0] for description in cursor.description]
@@ -615,28 +587,16 @@ def studentsList():
 
             # Extract query parameters and update search_params dictionary
             search_params["id"] = request.args.get("id", default="", type=str)
-            search_params["first_name"] = request.args.get(
-                "first_name", default="", type=str
-            )
+            search_params["first_name"] = request.args.get("first_name", default="", type=str)
             search_params["phone"] = request.args.get("phone", default="", type=str)
 
             # Filter Data_student based on search_params
             if search_params["id"]:
-                data_student = [
-                    data for data in data_student if search_params["id"] in data["_id"]
-                ]
+                data_student = [data for data in data_student if search_params["id"] in data["_id"]]
             if search_params["first_name"]:
-                data_student = [
-                    data
-                    for data in data_student
-                    if search_params["first_name"].lower() == data["first_name"].lower()
-                ]
+                data_student = [data for data in data_student if search_params["first_name"].lower() == data["first_name"].lower()]
             if search_params["phone"]:
-                data_student = [
-                    data
-                    for data in data_student
-                    if search_params["phone"] in data["phone"]
-                ]
+                data_student = [data for data in data_student if search_params["phone"] in data["phone"]]
 
         if request.method == "POST" and request.form["action"] == "Sort":
             data_student = sorted(data_student, key=lambda x: x["rating"], reverse=True)
@@ -735,9 +695,7 @@ def editStudent(id):
         search_params["first_name"] = request.form["first_name"]
         search_params["patronymic"] = request.form["patronymic"]
         search_params["birthday_date"] = request.form["dob"]
-        search_params["group_name"] = request.form.get(
-            "group_name", default=data_cursor["group_name"], type=int
-        )
+        search_params["group_name"] = request.form.get("group_name", default=data_cursor["group_name"], type=int)
         search_params["phone"] = request.form["phone"]
 
         # Update the student record in the database
@@ -809,17 +767,11 @@ def show_file():
             response.headers.set("Content-Type", content_type)
 
             # Set the Content-Disposition header
-            filename_header = 'filename="%s"' % urllib.parse.quote(
-                filename.encode("utf-8")
-            )
+            filename_header = 'filename="%s"' % urllib.parse.quote(filename.encode("utf-8"))
             if content_type != "application/pdf":
-                response.headers.set(
-                    "Content-Disposition", "attachment", filename=filename_header
-                )
+                response.headers.set("Content-Disposition", "attachment", filename=filename_header)
             else:
-                response.headers.set(
-                    "Content-Disposition", "inline", filename=filename_header
-                )
+                response.headers.set("Content-Disposition", "inline", filename=filename_header)
 
             return response
         else:
@@ -870,21 +822,11 @@ def teachers():
 
         # Filter lecturer_data based on search_params
         if search_params["id"]:
-            lecturer_data = [
-                data for data in lecturer_data if search_params["id"] in data["_id"]
-            ]
+            lecturer_data = [data for data in lecturer_data if search_params["id"] in data["_id"]]
         if search_params["surname"]:
-            lecturer_data = [
-                data
-                for data in lecturer_data
-                if search_params["surname"].lower() == data["surname"].lower()
-            ]
+            lecturer_data = [data for data in lecturer_data if search_params["surname"].lower() == data["surname"].lower()]
         if search_params["phone"]:
-            lecturer_data = [
-                data
-                for data in lecturer_data
-                if search_params["phone"] in data["phone"]
-            ]
+            lecturer_data = [data for data in lecturer_data if search_params["phone"] in data["phone"]]
 
     if request.method == "POST" and request.form["action"] == "Download":
         # Create a new Excel workbook and sheet
@@ -917,9 +859,7 @@ def teachers():
 
         # Create a response object with the workbook as the content and headers to trigger a file download
         response = make_response(buffer.getvalue())
-        response.headers[
-            "Content-Type"
-        ] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         response.headers["Content-Disposition"] = "attachment; filename=teachers.xlsx"
 
         conn.close()
@@ -947,9 +887,7 @@ def add_file(subject_id, file_name, file):
         conn.commit()
 
     # Check if the connection exists in the SubjectFile table
-    check_connection_query = (
-        "SELECT COUNT(*) FROM SubjectFile WHERE subject_id = ? AND file_id = ?"
-    )
+    check_connection_query = "SELECT COUNT(*) FROM SubjectFile WHERE subject_id = ? AND file_id = ?"
     cursor.execute(check_connection_query, (subject_id, file_id))
     connection_exists = cursor.fetchone()[0]
 
@@ -958,9 +896,7 @@ def add_file(subject_id, file_name, file):
         return f"Connection between subject ID {subject_id} and file '{file_name}' already exists."
     else:
         # Insert the connection into the SubjectFile table
-        insert_connection_query = (
-            "INSERT INTO SubjectFile (subject_id, file_id) VALUES (?, ?)"
-        )
+        insert_connection_query = "INSERT INTO SubjectFile (subject_id, file_id) VALUES (?, ?)"
         cursor.execute(insert_connection_query, (subject_id, file_id))
         conn.commit()
         conn.close()
@@ -1015,6 +951,7 @@ def subjects():
         subject_data = {"subject_name": subject["subject_name"], "files": file_data}
         data.append(subject_data)
 
+    print(data)
     cursor.close()
     conn.close()
 
@@ -1033,9 +970,7 @@ def addSubjects():
         cursor = conn.cursor()
 
         datas = (group_name, subject_name)
-        query = (
-            "INSERT INTO Subject (group_name, messenge, subject_name) VALUES (?, ?, ?)"
-        )
+        query = "INSERT INTO Subject (group_name, messenge, subject_name) VALUES (?, ?, ?)"
         cursor.execute(query, datas)
         conn.commit()
         conn.close()
@@ -1043,6 +978,11 @@ def addSubjects():
     else:
         return render_template("add-subject.html")
     return render_template("add-subject.html")
+
+
+@app.route("/edit-subject", methods=["GET", "POST"])
+def editSubject():
+    pass
 
 
 @app.route("/delte-subject/<int:id1>/<int:id2>", methods=["GET", "POST"])
@@ -1148,9 +1088,7 @@ def addExercise():
 
         if existing_data_count == 0:
             # Insert data into ExercisesGroup table
-            query_insert = (
-                "INSERT INTO ExercisesGroup (exercise_id, group_name) VALUES (?, ?)"
-            )
+            query_insert = "INSERT INTO ExercisesGroup (exercise_id, group_name) VALUES (?, ?)"
             cursor.execute(query_insert, (exercise_id, group_name))
             conn.commit()
             print("Data inserted into ExercisesGroup table.")
@@ -1188,9 +1126,7 @@ def editExercise(id):
         search_params["expiry_time"] = request.form["expiry_time"]
         search_params["subject_name"] = request.form["subject_name"]
         search_params["messenge"] = request.form.get("messenge")
-        search_params["file_name"] = (
-            data_cursor["file_name"] if filename == "" else filename
-        )
+        search_params["file_name"] = data_cursor["file_name"] if filename == "" else filename
 
         # Update the exercise record in the database
         old_data = data_cursor
@@ -1243,9 +1179,7 @@ def insert_into_waitroom(user_info, selected_ids, group_id):
                 "INSERT INTO WaitRoom (user_id, group_id, exercise_id) VALUES (?, ?, ?)",
                 (user_info, group_id, chat_item_id),
             )
-            cursor.execute(
-                "UPDATE Exercises SET checkkType = ? WHERE id = ?", (1, chat_item_id)
-            )
+            cursor.execute("UPDATE Exercises SET checkkType = ? WHERE id = ?", (1, chat_item_id))
 
         # Commit the changes to the database
         conn.commit()
@@ -1301,9 +1235,7 @@ def waitingRoom():
     data = [dict(zip(column_names, row)) for row in cursor.fetchall()]
 
     # Create a nested dictionary to store the data structure
-    exercise_group_data = defaultdict(
-        lambda: {"exercise_id": None, "subject_name": None, "group_ids": []}
-    )
+    exercise_group_data = defaultdict(lambda: {"exercise_id": None, "subject_name": None, "group_ids": []})
 
     # Organize the data into the desired structure
     for row in data:
@@ -1329,14 +1261,8 @@ def waitingRoom():
             exercise_group_data[exercise_id]["group_ids"].append(group_entry)
 
         # Add student data to the group
-        student_data = {
-            key: row[key]
-            for key in row.keys()
-            if key not in ("exercise_id", "subject_name", "group_name", "student_id")
-        }
-        group_entry["students_data"].append(
-            {"student_id": student_id, "student_data": student_data}
-        )
+        student_data = {key: row[key] for key in row.keys() if key not in ("exercise_id", "subject_name", "group_name", "student_id")}
+        group_entry["students_data"].append({"student_id": student_id, "student_data": student_data})
 
     cursor.close()
     conn.close()
@@ -1348,9 +1274,7 @@ def outWaitingRoom(id1, id2):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     print(id1, id2)
-    cursor.execute(
-        "DELETE FROM WaitRoom WHERE exercise_id = ? AND student_id = ?", (id1, id2)
-    )
+    cursor.execute("DELETE FROM WaitRoom WHERE exercise_id = ? AND student_id = ?", (id1, id2))
     conn.commit()
     conn.close()
     return redirect(url_for("waitingRoom"))
@@ -1426,6 +1350,7 @@ def allowed_file(filename):
 
 
 @app.route("/generate_text", methods=["POST"])
+@cross_origin()
 def generate_text():
     data = request.json
     user_message = data.get("user_message")
@@ -1435,12 +1360,7 @@ def generate_text():
     top_p = data.get("top_p", 0.9)
     max_new_tokens = data.get("max_new_tokens", 1024)
     repetition_penalty = data.get("repetition_penalty", 1.2)
-    chatbot = [
-        (item["text"], next_item["text"])
-        for item, next_item in zip(chatbot, chatbot[1:])
-        if item["user"] == True
-    ]
-    # print(chatbot)
+    chatbot = [(item["text"], next_item["text"]) for item, next_item in zip(chatbot, chatbot[1:]) if item["user"] == True]
     try:
         result = generate(user_message, history, chatbot)
         return jsonify(result)
@@ -1463,9 +1383,7 @@ def chatbot():
 def check_exercises_changes(group_name):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT * FROM Exercises WHERE group_name = ? AND checkkType = 0", (group_name,)
-    )
+    cursor.execute("SELECT * FROM Exercises WHERE group_name = ? AND checkkType = 0", (group_name,))
     exercises = cursor.fetchall()
     conn.close()
     return exercises
@@ -1475,9 +1393,7 @@ def check_exercises_changes(group_name):
 @app.route("/check_exercises_changes", methods=["GET"])
 def check_exercises_changes_route():
     if session.get("group_ids", None):
-        group_name = session["group_ids"][
-            0
-        ]  # Change this to your group name or get it from the frontend
+        group_name = session["group_ids"][0]  # Change this to your group name or get it from the frontend
         exercises = check_exercises_changes(group_name)
         return jsonify(exercises)
     return jsonify("you are not loged"), 500
@@ -1486,7 +1402,9 @@ def check_exercises_changes_route():
 @app.route("/find-thesis", methods=["GET", "POST"])
 def find_thesis():
     if request.method == "POST":
-        large_text = request.form["text"]
+        print(request.form)
+        large_text = request.form["thesis_title"]
+        # technologies = request.form["technologies"] # can be programming languages and another things e.g. ["Python", "Javascript", "AWS", etc.]
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
 
@@ -1542,48 +1460,23 @@ def find_thesis():
                     "և",
                 ]
             )
-            preprocessed_topics = [
-                " ".join(
-                    [
-                        word
-                        for word in topic[0].split()
-                        if word.lower() not in stop_words
-                    ]
-                )
-                for topic in thesis_data
-            ]
-            preprocessed_large_text = " ".join(
-                [word for word in large_text.split() if word.lower() not in stop_words]
-            )
+            preprocessed_topics = [" ".join([word for word in topic[0].split() if word.lower() not in stop_words]) for topic in thesis_data]
+            preprocessed_large_text = " ".join([word for word in large_text.split() if word.lower() not in stop_words])
 
             vectorizer = TfidfVectorizer()
-            tfidf_matrix_large_text = vectorizer.fit_transform(
-                [preprocessed_large_text] + preprocessed_topics
-            )
-            cosine_similarities = cosine_similarity(
-                tfidf_matrix_large_text[0], tfidf_matrix_large_text[1:]
-            )
+            tfidf_matrix_large_text = vectorizer.fit_transform([preprocessed_large_text] + preprocessed_topics)
+            cosine_similarities = cosine_similarity(tfidf_matrix_large_text[0], tfidf_matrix_large_text[1:])
             similarity_threshold = 0.5
 
-            similar_topics = [
-                thesis_data[i][1]
-                for i, score in enumerate(cosine_similarities[0])
-                if score > similarity_threshold
-            ]
+            similar_topics = [thesis_data[i][1] for i, score in enumerate(cosine_similarities[0]) if score > similarity_threshold]
             data_student = []
 
             if similar_topics:
-                query = "SELECT * FROM Student WHERE id IN ({})".format(
-                    ",".join("?" for _ in similar_topics)
-                )
+                query = "SELECT * FROM Student WHERE id IN ({})".format(",".join("?" for _ in similar_topics))
                 cursor.execute(query, similar_topics)
 
-                column_names_student = [
-                    description[0] for description in cursor.description
-                ]
-                data_student = [
-                    dict(zip(column_names_student, row)) for row in cursor.fetchall()
-                ]
+                column_names_student = [description[0] for description in cursor.description]
+                data_student = [dict(zip(column_names_student, row)) for row in cursor.fetchall()]
 
                 # Add thesis data to data_student
                 thesis_mapping = {row[1]: row[0] for row in thesis_data}
@@ -1615,4 +1508,6 @@ def find_thesis():
 # 03611558
 
 if __name__ == "__main__":
+    # from waitress import serve
+    # serve(app, host="0.0.0.0", port=8080)
     app.run(debug=True)

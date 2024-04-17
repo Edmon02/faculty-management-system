@@ -1,6 +1,11 @@
-{% extends "base.html" %}
-{% block title %}Student List{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}Student List{% endblock %} {% block
+content %}
+<!-- Include Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Include Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.js"></script>
+
 <div class="page-header">
   <div class="row">
     <div class="col-sm-12">
@@ -26,9 +31,24 @@
             id="searchInput"
             type="text"
             class="form-control"
-            name="text"
+            name="thesis_title"
             placeholder="Search by Thesis Name ..."
           />
+          <div class="select select-multiple">
+          <select id="techniqueDropdown" class="form-control" multiple="multiple">
+            <!-- <option value="">Select Technique</option> -->
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <!-- Add more options as needed -->
+          </select>
+          <span class="focus"></span>
+        </div>
         </div>
       </div>
       <div class="col-lg-2">
@@ -96,82 +116,103 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function() {
+  $(document).ready(function () {
+    
     // Event listener for click event on the search button
     $("#searchButton").on("click", fetchData);
-
+    
+    $("#techniqueDropdown").on("change", fetchData);
+    
     // Event listener for keyup event on the search input field
-    $("#searchInput").on("keyup", function(event) {
-        if (event.keyCode === 13) {
-            fetchData(); // Call the fetchData function when Enter key is pressed
-        }
+    $("#searchInput").on("keyup", function (event) {
+      if (event.keyCode === 13) {
+        fetchData(); // Call the fetchData function when Enter key is pressed
+      }
+    });
+    
+    // Event listener for input event on the search input field
+    $("#searchInput").on("input", function () {
+      fetchData(); // Call the fetchData function when the input value changes
+    });
+    
+    $("#techniqueDropdown").select2({
+        placeholder: "Select Techniques", // Placeholder text
+        allowClear: true, // Option to clear selections
+        closeOnSelect: false // Keep the dropdown open after selection
+    });
+    $("#techniqueDropdown").on("change", function() {
+        // Get selected options
+        var selectedOptions = $(this).val();
+        console.log(selectedOptions);
+        // Fetch data or perform other actions based on selected options
     });
 
-    // Event listener for input event on the search input field
-    $("#searchInput").on("input", function() {
-        fetchData(); // Call the fetchData function when the input value changes
-    });
 
     // Function to fetch data
     function fetchData() {
-        const query = $("#searchInput").val().trim(); // Get the value from the input field
-
-        // Perform asynchronous form submission using AJAX
-        $.ajax({
-            url: "/find-thesis",
-            type: "POST",
-            data: { text: query }, // Send the query as data
-            success: function(data) {
-                updateTable(data); // Call the function to update the table with fetched data
-            },
-            error: function(xhr, status, error) {
-                console.error("Error fetching data:", xhr);
-            },
-        });
+      const query = $("#searchInput").val().trim(); // Get the value from the input field
+      const technique = $("#techniqueDropdown").val();
+      // console.log(technique);
+      // Perform asynchronous form submission using AJAX
+      $.ajax({
+        url: "/find-thesis",
+        type: "POST",
+        data: { thesis_title: query, technique: technique }, // Send the query as data
+        success: function (data) {
+          updateTable(data); // Call the function to update the table with fetched data
+        },
+        error: function (xhr, status, error) {
+          console.error("Error fetching data:", xhr);
+        },
+      });
     }
 
     // Function to update the table with fetched data
     function updateTable(data) {
-        console.log(data);
-        const tbody = $("#studentTable tbody"); // Select the table body
+      const tbody = $("#studentTable tbody"); // Select the table body
 
-        // Clear existing table rows
-        tbody.empty();
+      // Clear existing table rows
+      tbody.empty();
 
-        // Iterate over the fetched data and append rows to the table
-        data.forEach(function(student) {
-            const row = $("<tr>"); // Create a new table row
-            row.append("<td>" + student.id + "</td>"); // Append ID column
-            row.append(
-                "<td>" +
-                '<h2 class="table-avatar">' +
-                '<a href="student-details.html" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="data:image/jpeg;base64,' +
-                student.image +
-                '" alt="User Image" /></a>' +
-                '<a href="student-details.html">' +
-                student.first_name +
-                "</a>" +
-                "</h2>" +
-                "</td>"
-            ); // Append Name column
-            row.append("<td>" + student.group_name + "</td>"); // Append Group column
-            let thesisText = student.thesis;
-            if (thesisText.split(' ').length > 5) {
-                thesisText = thesisText.split(' ').slice(0, 5).join(' ') + '...'; // Truncate text if more than 5 words
-                row.append(`<td><span class="truncated-text" onclick="expandText(this)">${thesisText}</span></td>`);
-            } else {
-                row.append("<td>" + thesisText + "</td>"); // Append Group column
-            }
-            tbody.append(row); // Append the row to the table body
-        });
+      // Iterate over the fetched data and append rows to the table
+      data.forEach(function (student) {
+        const row = $("<tr>"); // Create a new table row
+        row.append("<td>" + student.id + "</td>"); // Append ID column
+        row.append(
+          "<td>" +
+            '<h2 class="table-avatar">' +
+            '<a href="student-details.html" class="avatar avatar-sm me-2"><img class="avatar-img rounded-circle" src="data:image/jpeg;base64,' +
+            student.image +
+            '" alt="User Image" /></a>' +
+            '<a href="student-details.html">' +
+            student.first_name +
+            "</a>" +
+            "</h2>" +
+            "</td>"
+        ); // Append Name column
+        row.append("<td>" + student.group_name + "</td>"); // Append Group column
+        let thesisText = student.thesis;
+        if (thesisText.split(" ").length > 5) {
+          thesisText = thesisText.split(" ").slice(0, 5).join(" ") + "..."; // Truncate text if more than 5 words
+          row.append(
+            `<td><span class="truncated-text" onclick="expandText(this)">${thesisText}</span></td>`
+          );
+        } else {
+          row.append("<td>" + thesisText + "</td>"); // Append Group column
+        }
+        tbody.append(row); // Append the row to the table body
+      });
     }
 
     // Function to expand truncated text
     function expandText(element) {
-        $(element).text($(element).text().replace('...', '')).css('cursor', 'auto').off('click');
+      $(element)
+        .text($(element).text().replace("...", ""))
+        .css("cursor", "auto")
+        .off("click");
     }
-});
-
+  });
+  
 </script>
 
 {% endblock %}

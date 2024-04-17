@@ -7,6 +7,7 @@
       content="width=device-width, initial-scale=1.0, user-scalable=0"
     />
     <title>{% block title %}{% endblock %}</title>
+    {% block link %}{% endblock %}
     <link
       rel="shortcut icon"
       href="{{ url_for('static', filename='css/assets/img/favicon.png') }}"
@@ -447,7 +448,7 @@
                   {% endif %}
                 </ul>
               </li>
-              {% endif %} {% if session['is_Lecturer'] == 'True' %}
+              {% endif %} {% if session['type'] == 'lecturer' %}
               <li class="submenu1">
                 <a
                   href="/waitingroom"
@@ -709,6 +710,22 @@
         // Check for changes every 1 minute (60000 milliseconds)
         setInterval(checkExercisesChanges, 60000);
       });
+    </script>
+
+    <script>
+      // Get the base URL from the window location
+      var baseUrl = window.location.origin;
+
+      // Select the anchor tag by its id
+      var studentLink = document.getElementById("student-link");
+      var subjectLink = document.getElementById("subject-link");
+      if (studentLink) {
+        // Set the href attribute to the base URL concatenated with the desired endpoint
+        studentLink.href = baseUrl + "/students";
+      } else if (subjectLink) {
+        // Do the same action as in the first condition
+        subjectLink.href = baseUrl + "/subjects";
+      }
     </script>
   </body>
 </html>
