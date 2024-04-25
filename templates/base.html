@@ -315,14 +315,14 @@
                       >Admin Dashboard</a
                     >
                   </li>
-                  {% if session['is_Admin'] == 'True' %}
+                  <!-- {% if session['is_Admin'] == 'True' %}
                   <li>
                     <a href="teacher-dashboard.html">Teacher Dashboard</a>
                   </li>
                   <li>
                     <a href="student-dashboard.html">Student Dashboard</a>
                   </li>
-                  {% endif %}
+                  {% endif %} -->
                 </ul>
               </li>
 
@@ -349,13 +349,6 @@
                       >Student Add</a
                     >
                   </li>
-                  <li>
-                    <a
-                      href="/students"
-                      class="{{ 'active' if '/students/edit-student' in request.path else '' }}"
-                      >Student Edit</a
-                    >
-                  </li>
                   {% endif %}
                 </ul>
               </li>
@@ -371,13 +364,18 @@
                   <li>
                     <a
                       href="/teachers"
-                      class="{{ 'active' if 'teachers' in request.path else '' }}"
+                      class="{{ 'active' if '/teachers' in request.path and '/teachers/' not in request.path else '' }}"
                       >Teacher List</a
                     >
                   </li>
                   {% if session['is_Admin'] == 'True' %}
-                  <li><a href="/add-teacher">Teacher Add</a></li>
-                  <li><a href="/edit-teacher">Teacher Edit</a></li>
+                  <li>
+                    <a
+                      href="/teachers/add-teacher"
+                      class="{{ 'active' if '/teachers/add-teacher' in request.path else '' }}"
+                      >Teacher Add</a
+                    >
+                  </li>
                   {% endif %}
                 </ul>
               </li>

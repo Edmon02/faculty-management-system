@@ -10,101 +10,107 @@ content %}
 <link rel="shortcut icon" href="/favicon.ico" />
 
 <noscript>You need to enable JavaScript to run this app.</noscript>
-
-    <div class="row">
-      <div class="col-sm-12">
-        <div class="card comman-shadow">
-          <div class="card-body">
-            <form
-              method="POST"
-              action="{{ url_for('addNews') }}"
-              enctype="multipart/form-data"
-            >
-              <div class="col">
-                <div class="col-12 col-sm-4">
-                  <div class="form-group local-forms">
-                    <!-- <input type="file" id="img" name="img" accept="image/*"> -->
-                    <div id="root"></div>
-                  </div>
-                </div>
-
-                <div class="col-12 col-sm-4">
-                  <div class="form-group local-forms">
-                    <label>Category <span class="login-danger">*</span></label>
-                    <input
-                      class="form-control"
-                      type="text"
-                      name="category"
-                      placeholder="Enter Category Name"
-                    />
-                  </div>
-                </div>
-
-                <div class="col-12 col-sm-4">
-                  <div class="form-group local-forms">
-                    <label>Title <span class="login-danger">*</span></label>
-                    <input
-                      minlength="15"
-                      class="form-control"
-                      type="text"
-                      name="title"
-                      placeholder="Enter Title Name"
-                    />
-                  </div>
-                </div>
-
-                <div class="col-12">
-                  <div class="form-group local-forms">
-                    <label>Text <span class="login-danger">*</span></label>
-                    <textarea
-                      class="form-control"
-                      id="exampleFormControlTextarea1"
-                      rows="3"
-                      name="messenge"
-                      cols="2"
-                    ></textarea>
-                  </div>
-                </div>
-
-                <div class="col-12">
-                  <div class="student-submit">
-                    <button type="submit" class="btn btn-primary">
-                      Submit
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col-sm-12">
+      <div class="page-sub-header">
+        <h3 class="page-title">Add News</h3>
       </div>
     </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-12">
+    <div class="card comman-shadow">
+      <div class="card-body">
+        <form
+          method="POST"
+          action="{{ url_for('addNews') }}"
+          enctype="multipart/form-data"
+        >
+          <div class="col">
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <!-- <input type="file" id="img" name="img" accept="image/*"> -->
+                <div id="root"></div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Category <span class="login-danger">*</span></label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="category"
+                  placeholder="Enter Category Name"
+                />
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Title <span class="login-danger">*</span></label>
+                <input
+                  minlength="15"
+                  class="form-control"
+                  type="text"
+                  name="title"
+                  placeholder="Enter Title Name"
+                />
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-group local-forms">
+                <label>Text <span class="login-danger">*</span></label>
+                <textarea
+                  class="form-control"
+                  id="exampleFormControlTextarea1"
+                  rows="3"
+                  name="messenge"
+                  cols="2"
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="student-submit">
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
-function previewImage(event) {
+  function previewImage(event) {
     const input = event.target;
     const reader = new FileReader();
 
     reader.onload = function () {
-        document.getElementById('preview').src = reader.result;
+      document.getElementById("preview").src = reader.result;
     };
 
     reader.readAsDataURL(input.files[0]);
-}
+  }
 
-document.getElementById('imageUpload').addEventListener('click', function () {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.name = 'image';
-    fileInput.accept = 'image/*';
-    fileInput.style.display = 'none';
+  document.getElementById("imageUpload").addEventListener("click", function () {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.name = "image";
+    fileInput.accept = "image/*";
+    fileInput.style.display = "none";
 
-    fileInput.addEventListener('change', previewImage);
+    fileInput.addEventListener("change", previewImage);
 
     document.body.appendChild(fileInput);
     fileInput.click();
     document.body.removeChild(fileInput);
-});
+  });
 </script>
 
 <script>

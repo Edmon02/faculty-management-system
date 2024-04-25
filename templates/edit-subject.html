@@ -1,0 +1,235 @@
+{% extends "base.html" %} {% block title %}Edit Subject{% endblock %} {% block
+link %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/multi-select-tag.css') }}"
+/>
+<script src="/static/js/multi-select-tag.js"></script>
+{% endblock %} {% block content %}
+<style lang="scss">
+  #resultBox {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    cursor: pointer;
+    border-radius: 0.25rem;
+    padding: 2%;
+    margin-bottom: 15%;
+    position: absolute;
+    z-index: 1000;
+  }
+</style>
+
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col-sm-12">
+      <div class="page-sub-header">
+        <h3 class="page-title">Edit Subject</h3>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a id="subject-link" href="#">Subjects</a>
+          </li>
+          <li class="breadcrumb-item active">Edit Subject</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-sm-12">
+    <div class="card comman-shadow">
+      <div class="card-body">
+        <form
+          method="POST"
+          action="{{ url_for('addSubjects') }}"
+          enctype="multipart/form-data"
+        >
+          <div class="row">
+            <div class="col-12">
+              <h5 class="form-title student-info">
+                Subject Information
+                <span
+                  ><a href="javascript:;"
+                    ><i class="feather-more-vertical"></i></a
+                ></span>
+              </h5>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Subject Name <span class="login-danger">*</span></label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="subject_name"
+                  placeholder="Enter Subject Name"
+                />
+              </div>
+            </div>
+
+            <!-- <div class="col-12 col-sm-4">
+                  <div class="form-group local-forms">
+                    <label>Group Name <span class="login-danger">*</span></label>
+                    <input
+                      class="form-control"
+                      type="text"
+                      name="group_name"
+                      placeholder="Enter Group Name"
+                    />
+                  </div>
+                </div> -->
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Group Name(s)<span class="login-danger">*</span></label>
+                <select name="countries" id="countries" multiple>
+                  <optgroup label="Asia">
+                    <option value="12">Group A</option>
+                    <option value="13">Group B</option>
+                    <option value="1">ՏՏ018</option>
+                    <option value="2">ՏՏ019</option>
+                    <option value="3">ՏՏ020</option>
+                    <option value="4">ՏՏ021</option>
+                    <option value="5">ՏՏ022</option>
+                    <option value="6">ՏՏ023</option>
+                    <option value="7">ՏՏ024</option>
+                    <option value="8">ՏՏ025</option>
+                  </optgroup>
+                  <option value="9">Germany</option>
+                  <option value="10">Canada</option>
+                  <option value="11">Russia</option>
+                </select>
+                <!-- <div class="col-md-12">
+                      <div class="input-group">
+                        <input
+                          type="text"
+                          id="filterInput"
+                          class="form-control"
+                          placeholder="Filter options"
+                        />
+                      </div>
+                      <div id="resultBox" class="mt-2"></div>
+                    </div> -->
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>Text <span class="login-danger">*</span></label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="messenge"
+                  placeholder="Add Some Text"
+                />
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-4">
+              <div class="form-group students-up-files">
+                <label id="fileLabel"></label><br />
+                <label>Upload File <10mg </label>
+                <div class="uplod">
+                  <label class="file-upload image-upbtn mb-0">
+                    Choose File
+                    <input
+                      id="fileInput"
+                      type="file"
+                      name="file"
+                      accept="application/pdf, ,application/msword"
+                      style="display: none"
+                      onchange="updateFileName()"
+                    />
+                  </label>
+                </div>
+                <div
+                  class="alert alert-danger mt-2"
+                  id="errorContainer"
+                  style="display: none"
+                ></div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="student-submit">
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- <script>
+      // Get references to the filter input and result box
+      const filterInput = document.getElementById("filterInput");
+      const resultBox = document.getElementById("resultBox");
+      // Options for demonstration
+      const options = [
+        "Option 1",
+        "Option 2",
+        "Option 3",
+        "Option 4",
+        "Option 5",
+        "Option 6",
+      ];
+    
+      let selectedOptions = []; // Array to store selected options
+    
+      // Function to close the result box
+      function closeResultBox() {
+        resultBox.style.display = "none";
+      }
+    
+      // Add event listener to the filter input for input event
+      filterInput.addEventListener("input", function () {
+        const filterValue = filterInput.value.toLowerCase(); // Get filter input value
+    
+        // Filter options based on filter value
+        const filteredOptions = options.filter((option) =>
+          option.toLowerCase().includes(filterValue)
+        );
+    
+        // Clear previous results
+        resultBox.innerHTML = "";
+    
+        // Display filtered options in the result box
+        filteredOptions.forEach((option) => {
+          const optionElement = document.createElement("div");
+          optionElement.textContent = option;
+          optionElement.classList.add("filtered-option");
+          resultBox.style.display = "block";
+    
+          optionElement.addEventListener("click", function () {
+            // Toggle selection
+            if (selectedOptions.includes(option)) {
+              selectedOptions = selectedOptions.filter((item) => item !== option);
+            } else {
+              selectedOptions.push(option);
+            }
+    
+            // Update input field value with selected options
+            filterInput.value = selectedOptions.join(", ");
+    
+            // Clear the result box
+            resultBox.innerHTML = "";
+    
+            // Close the result box
+            closeResultBox();
+          });
+          resultBox.appendChild(optionElement);
+        });
+      });
+    
+      // Add event listener to document to close result box when clicking outside of it
+      document.addEventListener("click", function (event) {
+        if (!resultBox.contains(event.target) && event.target !== filterInput) {
+          closeResultBox();
+        }
+      });
+    </script> -->
+<script>
+  new MultiSelectTag("countries"); // id
+</script>
+{% endblock %}

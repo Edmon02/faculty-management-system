@@ -13,6 +13,7 @@ import string
 import time
 import traceback
 import urllib.parse
+import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 from io import BytesIO
@@ -101,6 +102,11 @@ def insert_student_data(data):
     conn.commit()
     cursor.close()
     conn.close()
+
+
+def get_mac_address():
+    mac_address = ":".join(["{:02x}".format((uuid.getnode() >> elements) & 0xFF) for elements in range(0, 2 * 6, 2)][::-1])
+    return mac_address
 
 
 UPLOAD_FOLDER = "static/images"
@@ -289,23 +295,30 @@ def index():
             )
             result = cursor.fetchone()
 
-            if result[1]:
-                failed_attempts, last_failed_attempt_str = result
-                last_failed_attempt = datetime.strptime(last_failed_attempt_str, "%Y-%m-%d %H:%M:%S.%f")
-                if failed_attempts >= 3 and last_failed_attempt + timedelta(minutes=30) > datetime.now():
-                    return (
-                        jsonify({"message": "User is blocked. Try again later."}),
-                        403,
-                    )
+            try:
+                if result[1]:
+                    failed_attempts, last_failed_attempt_str = result
+                    last_failed_attempt = datetime.strptime(last_failed_attempt_str, "%Y-%m-%d %H:%M:%S.%f")
+                    if failed_attempts >= 3 and last_failed_attempt + timedelta(minutes=30) > datetime.now():
+                        return (
+                            jsonify({"message": "User is blocked. Try again later."}),
+                            403,
+                        )
+            except:
+                pass
 
             query = "SELECT * FROM Users WHERE username = ? AND password = ?"
             cursor.execute(query, (username, password))
             result = cursor.fetchone()
-
+            admin_mac_address = "36:da:68:a3:8c:32"
+            print(get_mac_address())
             if result:
                 user_data = dict(zip([description[0] for description in cursor.description], result))
-
-                query = "SELECT * FROM Student WHERE id = ?" if user_data["type"] == "student" else "SELECT * FROM Lecturer WHERE id = ?"
+                mac_address = get_mac_address()
+                if user_data["type"] == "admin" and mac_address == admin_mac_address:
+                    query = "SELECT * FROM Lecturer WHERE id = ?"
+                else:
+                    query = "SELECT * FROM Student WHERE id = ?" if user_data["type"] == "student" else "SELECT * FROM Lecturer WHERE id = ?"
 
                 cursor.execute(query, (user_data["_id"],))
                 column_names = [description[0] for description in cursor.description]
@@ -785,19 +798,14 @@ def teachers():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
-    # query = 'SELECT chair_code FROM groups WHERE _id = ?'
-    # group_id = session.get('group_id')
-    # cursor.execute(query, (group_id,))
-    # group_data = cursor.fetchone()
     group_ids = session["group_ids"]
 
     query = """
-        SELECT * FROM Lecturer l
-        WHERE l.id IN (
-            SELECT lecturer_id
-            FROM LecturerGroup
-            WHERE group_name in ({})
-        )
+        SELECT l.*, s.subject_name, slg.group_name
+        FROM Lecturer l
+        JOIN SubjectLecturerGroup slg ON l.id = slg.lecturer_id
+        JOIN Subject s ON slg.subject_id = s.id
+        WHERE slg.group_name IN ({})
         """.format(
         ",".join("?" for _ in group_ids)
     )
@@ -822,9 +830,9 @@ def teachers():
 
         # Filter lecturer_data based on search_params
         if search_params["id"]:
-            lecturer_data = [data for data in lecturer_data if search_params["id"] in data["_id"]]
+            lecturer_data = [data for data in lecturer_data if search_params["id"] in str(data["id"])]
         if search_params["surname"]:
-            lecturer_data = [data for data in lecturer_data if search_params["surname"].lower() == data["surname"].lower()]
+            lecturer_data = [data for data in lecturer_data if search_params["surname"].lower() == data["last_name"].lower()]
         if search_params["phone"]:
             lecturer_data = [data for data in lecturer_data if search_params["phone"] in data["phone"]]
 
@@ -839,6 +847,8 @@ def teachers():
         sheet["C1"] = "Surname"
         sheet["D1"] = "Email"
         sheet["E1"] = "Degree"
+        sheet["F1"] = "Group Name"
+        sheet["G1"] = "Subject Name"
 
         # Add data to the sheet
         for i, data in enumerate(lecturer_data, start=2):
@@ -847,6 +857,8 @@ def teachers():
             sheet.cell(row=i, column=3, value=data["last_name"])
             sheet.cell(row=i, column=4, value=data["email"])
             sheet.cell(row=i, column=5, value=data["academic_degree"])
+            sheet.cell(row=i, column=6, value=data["group_name"])
+            sheet.cell(row=i, column=7, value=data["subject_name"])
 
         # Create a bytes buffer to save the workbook to
         buffer = BytesIO()
@@ -867,6 +879,81 @@ def teachers():
 
     conn.close()
     return render_template("teachers.html", data=lecturer_data)
+
+
+@app.route("/teachers/add-teacher", methods=["GET", "POST"])
+def addTeacher():
+    return render_template("add-teacher.html")
+
+
+@app.route("/teachers/edit-teacher/<int:id>", methods=["GET", "POST"])
+def editTeacher(id):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    query = "SELECT * FROM Lecturer WHERE id = ?"
+    cursor.execute(query, (id,))
+    # Get the column names
+    column_names = [description[0] for description in cursor.description]
+
+    # Fetch the results
+    data_cursor = dict(zip(column_names, cursor.fetchone()))
+
+    if request.method == "POST":
+        search_params = dict(data_cursor)
+
+        # Extract form data and update search_params dictionary
+        search_params["last_name"] = request.form["last_name"]
+        search_params["first_name"] = request.form["first_name"]
+        search_params["academic_degree"] = request.form["academic_degree"]
+        search_params["position"] = request.form["position"]
+        search_params["email"] = request.form["email"]
+        search_params["images"] = request.form["images"]
+        search_params["is_Admin"] = request.form.get("is_Admin", default=data_cursor["is_Admin"], type=str)
+        search_params["is_Lecturer"] = request.form.get("is_Lecturer", default=data_cursor["is_Lecturer"], type=str)
+
+        # Update the teacher record in the database
+        old_data = data_cursor
+        if old_data != search_params:
+            update_query = "UPDATE Lecturer SET last_name = ?, first_name = ?, academic_degree = ?, position = ?, email = ?, images = ?, is_Admin = ?, is_Lecturer = ? WHERE id = ?"
+            cursor.execute(
+                update_query,
+                (
+                    search_params["last_name"],
+                    search_params["first_name"],
+                    search_params["academic_degree"],
+                    search_params["position"],
+                    search_params["email"],
+                    search_params["images"],
+                    search_params["is_Admin"],
+                    search_params["is_Lecturer"],
+                    id,
+                ),
+            )
+            conn.commit()
+            archive_query = "INSERT INTO Archive_teacher (id, last_name, first_name, academic_degree, position, email, images, is_Admin, is_Lecturer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            cursor.execute(
+                archive_query,
+                (
+                    old_data["id"],
+                    old_data["last_name"],
+                    old_data["first_name"],
+                    old_data["academic_degree"],
+                    old_data["position"],
+                    old_data["email"],
+                    old_data["images"],
+                    old_data["is_Admin"],
+                    old_data["is_Lecturer"],
+                ),
+            )
+            conn.commit()
+
+        # Redirect the user to the teacher list page
+        return redirect(url_for("teachersList"))
+
+    conn.close()
+
+    return render_template("edit-teacher.html", data=data_cursor)
 
 
 def add_file(subject_id, file_name, file):
@@ -980,9 +1067,9 @@ def addSubjects():
     return render_template("add-subject.html")
 
 
-@app.route("/edit-subject", methods=["GET", "POST"])
-def editSubject():
-    pass
+@app.route("/edit-subject/<int:id>", methods=["GET", "POST"])
+def editSubject(id):
+    return render_template("edit-subject.html")
 
 
 @app.route("/delte-subject/<int:id1>/<int:id2>", methods=["GET", "POST"])

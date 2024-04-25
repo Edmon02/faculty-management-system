@@ -1,235 +1,237 @@
-{% extends "base.html" %} {% block title %}Student List{% endblock %} {% block
+{% extends "base.html" %} {% block title %}Waiting Room{% endblock %} {% block
 content %}
 
-    <div class="page-header">
-      <div class="row">
-        <div class="col-sm-12">
-          <div class="page-sub-header">
-            <h3 class="page-title">Waiting Room</h3>
-            <!-- <ul class="breadcrumb">
+<div class="page-header">
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="page-sub-header">
+        <h3 class="page-title">Waiting Room</h3>
+        <!-- <ul class="breadcrumb">
                                    <li class="breadcrumb-item">
                                         <a href="students.html">Student</a>
                                    </li>
                                    <li class="breadcrumb-item active">All Students</li>
                               </ul> -->
-          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="student-group-form">
+  <form method="GET" action="{{ url_for('studentsList') }}">
+    <div class="row">
+      <div class="col-lg-3 col-md-6">
+        <div class="form-group">
+          <input
+            type="text"
+            class="form-control"
+            name="id"
+            placeholder="Search by ID ..."
+          />
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="form-group">
+          <input
+            type="text"
+            class="form-control"
+            name="first_name"
+            placeholder="Search by Name ..."
+          />
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6">
+        <div class="form-group">
+          <input
+            type="text"
+            class="form-control"
+            name="phone"
+            placeholder="Search by Phone ..."
+          />
+        </div>
+      </div>
+      <div class="col-lg-2">
+        <div class="search-student-btn">
+          <button type="submit" class="btn btn-primary">Search</button>
         </div>
       </div>
     </div>
+  </form>
+</div>
 
-    <div class="student-group-form">
-      <form method="GET" action="{{ url_for('studentsList') }}">
-        <div class="row">
-          <div class="col-lg-3 col-md-6">
-            <div class="form-group">
-              <input
-                type="text"
-                class="form-control"
-                name="id"
-                placeholder="Search by ID ..."
-              />
+<div class="row">
+  <div class="col-sm-12">
+    <div class="card card-table comman-shadow">
+      <div class="card-body">
+        <div class="page-header">
+          <div class="row align-items-center">
+            <div class="col">
+              <h3 class="page-title">Waiting Room</h3>
             </div>
-          </div>
-          <div class="col-lg-3 col-md-6">
-            <div class="form-group">
-              <input
-                type="text"
-                class="form-control"
-                name="first_name"
-                placeholder="Search by Name ..."
-              />
-            </div>
-          </div>
-          <div class="col-lg-4 col-md-6">
-            <div class="form-group">
-              <input
-                type="text"
-                class="form-control"
-                name="phone"
-                placeholder="Search by Phone ..."
-              />
-            </div>
-          </div>
-          <div class="col-lg-2">
-            <div class="search-student-btn">
-              <button type="submit" class="btn btn-primary">Search</button>
+            <div class="col-auto text-end float-end ms-auto download-grp">
+              <form
+                method="POST"
+                action="{{ url_for('studentsList', _external=True) }}"
+              >
+                <a href="students.html" class="btn btn-outline-gray me-2 active"
+                  ><i class="feather-list"></i
+                ></a>
+                <input type="hidden" name="action" value="Sort" />
+                <button type="submit" class="btn btn-outline-gray me-2">
+                  <i class="feather-grid"></i>
+                </button>
+                <a href="#" class="btn btn-outline-primary me-2"
+                  ><i class="fas fa-download"></i> Download</a
+                >
+                <a href="add-student.html" class="btn btn-primary"
+                  ><i class="fas fa-plus"></i
+                ></a>
+              </form>
             </div>
           </div>
         </div>
-      </form>
-    </div>
 
-    <div class="row">
-      <div class="col-sm-12">
-        <div class="card card-table comman-shadow">
-          <div class="card-body">
-            <div class="page-header">
-              <div class="row align-items-center">
-                <div class="col">
-                  <h3 class="page-title">Waiting Room</h3>
-                </div>
-                <div class="col-auto text-end float-end ms-auto download-grp">
-                  <form
-                    method="POST"
-                    action="{{ url_for('studentsList', _external=True) }}"
-                  >
-                    <a
-                      href="students.html"
-                      class="btn btn-outline-gray me-2 active"
-                      ><i class="feather-list"></i
-                    ></a>
-                    <input type="hidden" name="action" value="Sort" />
-                    <button type="submit" class="btn btn-outline-gray me-2">
-                      <i class="feather-grid"></i>
-                    </button>
-                    <a href="#" class="btn btn-outline-primary me-2"
-                      ><i class="fas fa-download"></i> Download</a
-                    >
-                    <a href="add-student.html" class="btn btn-primary"
-                      ><i class="fas fa-plus"></i
-                    ></a>
-                  </form>
-                </div>
-              </div>
+        {% for _, data in datas.items()%}
+
+        <div class="col-xl-6 d-flex" style="max-width: none">
+          <div class="card flex-fill student-space comman-shadow">
+            <div class="card-header d-flex align-items-center">
+              <h5 class="card-title">{{data['subject_name']}}</h5>
+              <ul class="chart-list-out student-ellips">
+                <li class="star-menus">
+                  <a href="javascript:;"><i class="fas fa-ellipsis-v"></i></a>
+                </li>
+              </ul>
             </div>
-
-            {% for _, data in datas.items()%}
-
-            <div class="col-xl-6 d-flex" style="max-width: none">
-              <div class="card flex-fill student-space comman-shadow">
-                <div class="card-header d-flex align-items-center">
-                  <h5 class="card-title">{{data['subject_name']}}</h5>
-                  <ul class="chart-list-out student-ellips">
-                    <li class="star-menus">
-                      <a href="javascript:;"
-                        ><i class="fas fa-ellipsis-v"></i
-                      ></a>
-                    </li>
-                  </ul>
-                </div>
-                <div class="card-body">
-                  <div class="table-responsive">
-                    {% for groups in data['group_ids'] %}
-                    <div class="col-xl-6 d-flex" style="max-width: none">
-                      <div class="card flex-fill student-space comman-shadow">
-                        <div class="card-header d-flex align-items-center">
-                          <h5 class="card-title">{{groups['group_name']}}</h5>
-                          <ul class="chart-list-out student-ellips">
-                            <li class="star-menus">
-                              <a href="javascript:;"
-                                ><i class="fas fa-ellipsis-v"></i
-                              ></a>
-                            </li>
-                          </ul>
-                        </div>
-                        <div class="card-body">
-                          <div class="table-responsive">
-                            <table
-                              class="table star-student table-hover table-center table-borderless table-striped"
-                            >
-                              <thead class="thead-light">
-                                <tr>
-                                  <th>ID</th>
-                                  <th>Name</th>
-                                  <th class="text-center">Marks</th>
-                                  <th class="text-center">Percentage</th>
-                                  <th class="text-center">Year</th>
-                                  <th class="text-center">Score</th>
-                                  <th class="text-end">Action</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {% for student_data in groups['students_data']
-                                %}
-                                <tr>
-                                  <td class="text-nowrap">
-                                    <div>{{student_data['student_id']}}</div>
-                                  </td>
-                                  <td class="text-nowrap">
-                                    <a href="profile.html">
-                                      <img
-                                        class="rounded-circle"
-                                        src="../static/css/assets/img/profiles/avatar-02.jpg"
-                                        width="25"
-                                        alt="Star Students"
-                                      />
-                                      {{student_data['student_data']['last_name']}}
-                                      {{student_data['student_data']['first_name']}}
-                                    </a>
-                                  </td>
-                                  <td class="text-center">
-                                    {{student_data['student_data']['rating']}}
-                                  </td>
-                                  <td class="text-center">98%</td>
-                                  <td class="text-center">
-                                    <div>
-                                      {{student_data['student_data']['birthday_date']}}
-                                    </div>
-                                  </td>
-                                  <td class="text-center">
-                                    <select style="border: none" class="score-dropdown" data-student-id="{{ student_data['student_id'] }}">
-
-                                      <option value="1">1</option>
-                                      <option value="2">2</option>
-                                      <option value="3">3</option>
-                                      <option value="4">4</option>
-                                      <option value="5">5</option>
-                                      <option value="6">6</option>
-                                    </select>
-                                  </td>
-                                  <td class="text-end">
-                                    <a
-                                      href="{{ url_for('outWaitingRoom', id1=data['exercise_id'], id2=student_data['student_id']) }}"
-                                      class="btn btn-sm bg-danger-light"
-                                    >
-                                      <i class="fa-solid fa-trash"></i>
-                                    </a>
-                                    <a href="/waitingroom" class="btn btn-sm bg-danger-light" onclick="submitScore('{{ data['exercise_id']}}', '{{ student_data['student_id'] }}')">
-                                      <i class="fa-solid fa-check"></i>
-                                    </a>
-                                  </td>
-                                </tr>
-                                {%endfor%}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                {% for groups in data['group_ids'] %}
+                <div class="col-xl-6 d-flex" style="max-width: none">
+                  <div class="card flex-fill student-space comman-shadow">
+                    <div class="card-header d-flex align-items-center">
+                      <h5 class="card-title">{{groups['group_name']}}</h5>
+                      <ul class="chart-list-out student-ellips">
+                        <li class="star-menus">
+                          <a href="javascript:;"
+                            ><i class="fas fa-ellipsis-v"></i
+                          ></a>
+                        </li>
+                      </ul>
+                    </div>
+                    <div class="card-body">
+                      <div class="table-responsive">
+                        <table
+                          class="table star-student table-hover table-center table-borderless table-striped"
+                        >
+                          <thead class="thead-light">
+                            <tr>
+                              <th>ID</th>
+                              <th>Name</th>
+                              <th class="text-center">Marks</th>
+                              <th class="text-center">Percentage</th>
+                              <th class="text-center">Year</th>
+                              <th class="text-center">Score</th>
+                              <th class="text-end">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for student_data in groups['students_data'] %}
+                            <tr>
+                              <td class="text-nowrap">
+                                <div>{{student_data['student_id']}}</div>
+                              </td>
+                              <td class="text-nowrap">
+                                <a href="profile.html">
+                                  <img
+                                    class="rounded-circle"
+                                    src="../static/css/assets/img/profiles/avatar-02.jpg"
+                                    width="25"
+                                    alt="Star Students"
+                                  />
+                                  {{student_data['student_data']['last_name']}}
+                                  {{student_data['student_data']['first_name']}}
+                                </a>
+                              </td>
+                              <td class="text-center">
+                                {{student_data['student_data']['rating']}}
+                              </td>
+                              <td class="text-center">98%</td>
+                              <td class="text-center">
+                                <div>
+                                  {{student_data['student_data']['birthday_date']}}
+                                </div>
+                              </td>
+                              <td class="text-center">
+                                <select
+                                  style="border: none"
+                                  class="score-dropdown"
+                                  data-student-id="{{ student_data['student_id'] }}"
+                                >
+                                  <option value="1">1</option>
+                                  <option value="2">2</option>
+                                  <option value="3">3</option>
+                                  <option value="4">4</option>
+                                  <option value="5">5</option>
+                                  <option value="6">6</option>
+                                </select>
+                              </td>
+                              <td class="text-end">
+                                <a
+                                  href="{{ url_for('outWaitingRoom', id1=data['exercise_id'], id2=student_data['student_id']) }}"
+                                  class="btn btn-sm bg-danger-light"
+                                >
+                                  <i class="fa-solid fa-trash"></i>
+                                </a>
+                                <a
+                                  href="/waitingroom"
+                                  class="btn btn-sm bg-danger-light"
+                                  onclick="submitScore(`{{ data['exercise_id']}}`, `{{ student_data['student_id'] }}`)"
+                                >
+                                  <i class="fa-solid fa-check"></i>
+                                </a>
+                              </td>
+                            </tr>
+                            {%endfor%}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
-                    {%endfor%}
                   </div>
                 </div>
+                {%endfor%}
               </div>
             </div>
-            {% endfor %}
           </div>
         </div>
+        {% endfor %}
       </div>
     </div>
+  </div>
+</div>
 
 <!-- Add this script, preferably at the end of your HTML body -->
 <script>
   function submitScore(exerciseId, studentId) {
-      const dropdown = document.querySelector(`.score-dropdown[data-student-id="${studentId}"]`);
-      const selectedValue = dropdown.value;
+    const dropdown = document.querySelector(
+      `.score-dropdown[data-student-id="${studentId}"]`
+    );
+    const selectedValue = dropdown.value;
 
-      // Send an asynchronous request to your Flask backend
-      fetch(`/done/${exerciseId}/${studentId}/${selectedValue}`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
+    // Send an asynchronous request to your Flask backend
+    fetch(`/done/${exerciseId}/${studentId}/${selectedValue}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Server response:", data);
+        // You can add additional logic here if needed
       })
-      .then(response => response.json())
-      .then(data => {
-          console.log('Server response:', data);
-          // You can add additional logic here if needed
-      })
-      .catch(error => {
-          console.error('Error:', error);
+      .catch((error) => {
+        console.error("Error:", error);
       });
   }
 </script>
-
-
 {% endblock %}

@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}Add Teacher{% endblock %} {% block
+{% extends "base.html" %} {% block title %}Edit Teacher{% endblock %} {% block
 link %}
 <link
   rel="stylesheet"
@@ -10,12 +10,12 @@ link %}
   <div class="row align-items-center">
     <div class="col-sm-12">
       <div class="page-sub-header">
-        <h3 class="page-title">Add Teacher</h3>
+        <h3 class="page-title">Edit Teacher</h3>
         <ul class="breadcrumb">
           <li class="breadcrumb-item">
             <a id="student-link" href="#">Teacher</a>
           </li>
-          <li class="breadcrumb-item active">Add Teachers</li>
+          <li class="breadcrumb-item active">Edit Teacher</li>
         </ul>
       </div>
     </div>
@@ -28,7 +28,7 @@ link %}
       <div class="card-body">
         <form
           method="POST"
-          action="{{ url_for('addTeacher') }}"
+          action="{{ url_for('editTeacher', id=data['id']) }}"
           enctype="multipart/form-data"
         >
           <div class="row">
@@ -43,71 +43,78 @@ link %}
             </div>
             <div class="col-12 col-sm-4">
               <div class="form-group local-forms">
-                <label>First Name <span class="login-danger">*</span></label>
+                <label>First Name </label>
                 <input
                   class="form-control"
                   type="text"
                   name="first_name"
-                  placeholder="Enter First Name"
+                  value="{{data['first_name']}}"
+                  placeholder="{{data['first_name']}}"
                 />
               </div>
             </div>
             <div class="col-12 col-sm-4">
               <div class="form-group local-forms">
-                <label>Last Name <span class="login-danger">*</span></label>
+                <label>Last Name </label>
                 <input
                   class="form-control"
                   type="text"
                   name="last_name"
-                  placeholder="Enter Last Name"
+                  value="{{data['last_name']}}"
+                  placeholder="{{data['last_name']}}"
                 />
               </div>
             </div>
             <div class="col-12 col-sm-4">
               <div class="form-group local-forms">
-                <label>Patronymic <span class="login-danger">*</span></label>
+                <label>Academic Degree </label>
                 <input
                   class="form-control"
                   type="text"
-                  name="patronymic"
-                  placeholder="Enter Patronymic Name"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms calendar-icon">
-                <label>Date Of Birth <span class="login-danger">*</span></label>
-                <input
-                  class="form-control datetimepicker"
-                  type="date"
-                  id="datePicker no_min"
-                  name="dob"
-                  placeholder="DD-MM-YYYY"
-                  min=""
+                  name="academic_degree"
+                  value="{{data['academic_degree']}}"
+                  placeholder="{{data['academic_degree']}}"
                 />
               </div>
             </div>
             <div class="col-12 col-sm-4">
               <div class="form-group local-forms">
-                <label>E-Mail <span class="login-danger">*</span></label>
+                <label>Position </label>
+                <input
+                  class="form-control"
+                  type="text"
+                  name="position"
+                  value="{{data['position']}}"
+                  placeholder="{{data['position']}}"
+                />
+              </div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="form-group local-forms">
+                <label>E-Mail </label>
                 <input
                   class="form-control"
                   type="text"
                   name="email"
-                  placeholder="Enter Email Address"
+                  placeholder="{{data['email']}}"
                 />
               </div>
             </div>
+
             <div class="col-12 col-sm-4">
               <div class="form-group local-forms">
-                <label
-                  >Subject Name(s)<span class="login-danger">*</span></label
-                >
+                <label>Group Name(s)<span class="login-danger">*</span></label>
                 <select name="countries" id="countries" multiple>
-                  <option value="1">Web technology</option>
-                  <option value="2">Mobile technology</option>
-                  <option value="3">SQL</option>
-                  <option value="4">Managment</option>
+                  <option value="12">Group A</option>
+                  <option value="13">Group B</option>
+                  <option value="1">ՏՏ018</option>
+                  <option value="2">ՏՏ019</option>
+                  <option value="3">ՏՏ020</option>
+                  <option value="4">ՏՏ021</option>
+                  <option value="5">ՏՏ022</option>
+                  <option value="6">ՏՏ023</option>
+                  <option value="7">ՏՏ024</option>
+                  <option value="8">ՏՏ025</option>
                 </select>
               </div>
             </div>
@@ -118,13 +125,14 @@ link %}
                   class="form-control"
                   type="text"
                   name="phone"
-                  placeholder="Enter Phone Number"
+                  value="{{data['phone']}}"
+                  placeholder="{{data['phone']}}"
                 />
               </div>
             </div>
             <div class="col-12 col-sm-4">
               <div class="form-group students-up-files">
-                <label>Upload Teacher Photo (150px X 150px)</label>
+                <label>Upload teacher Photo (150px X 150px)</label>
                 <div class="uplod">
                   <label class="file-upload image-upbtn mb-0">
                     Choose File <input type="file" name="photo" />
@@ -133,27 +141,11 @@ link %}
               </div>
             </div>
 
-            <div class="col-12" style="margin-bottom: 1.5rem">
-              <div class="student-submit">
-                <button type="submit" class="btn btn-primary">Submit</button>
-              </div>
-            </div>
-
             <div class="col-12">
-              <div
-                class="form-group local-forms"
-                style="border: solid 1px gainsboro; margin: initial"
-              ></div>
-            </div>
-
-            <div class="col-12 col-sm-4" style="margin-top: 1.5rem">
-              <div class="form-group students-up-files">
-                <label>Upload Teacher(s) by Excel File</label>
-                <div class="uplod">
-                  <label class="file-upload image-upbtn mb-0">
-                    Choose Excel File<input type="file" name="excel_file" />
-                  </label>
-                </div>
+              <div class="student-submit">
+                <button type="submit" class="btn btn-primary">
+                  Save Change
+                </button>
               </div>
             </div>
           </div>
