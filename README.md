@@ -52,7 +52,7 @@ flask_app/
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/faculty-management-system.git
+   git clone https://github.com/Edmon02/faculty-management-system.git
    cd faculty-management-system
    ```
 
