@@ -100,11 +100,9 @@ faculty-management-system/
 1. Clone the repository:
 
 ```
-
 git clone https://github.com/Edmon02/faculty-management-system.git
 
 cd faculty-management-system
-
 ```
 
   
@@ -112,11 +110,9 @@ cd faculty-management-system
 2. Create a virtual environment and activate it:
 
 ```
-
 python -m venv venv
 
 source venv/bin/activate # On Windows: venv\Scripts\activate
-
 ```
 
   
@@ -124,9 +120,7 @@ source venv/bin/activate # On Windows: venv\Scripts\activate
 3. Install the dependencies:
 
 ```
-
 pip install -r requirements.txt
-
 ```
 
   
@@ -134,9 +128,7 @@ pip install -r requirements.txt
 4. Create a `.env` file based on `.env.example`:
 
 ```
-
 cp .env.example .env
-
 ```
 
   
@@ -144,17 +136,13 @@ cp .env.example .env
 5. Run the application:
 
 ```
-
 flask run
-
 ```
 
 Or use the run script:
 
 ```
-
 python run.py
-
 ```
 
   
@@ -165,22 +153,16 @@ python run.py
 
 ### Database Setup
 
-  
-
 The application uses SQLite as its database. The database file is created automatically when the application is run for the first time.
 
   
 
 ### Testing
 
-  
-
 Run tests with pytest:
 
 ```
-
 pytest
-
 ```
 
   
@@ -192,9 +174,7 @@ pytest
 Ensure your code adheres to PEP 8 standards by running flake8:
 
 ```
-
 flake8
-
 ```
 
   
