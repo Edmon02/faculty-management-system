@@ -40,7 +40,7 @@ def create_app(config_name=None):
     db.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
-    CORS(app, origins=["http://localhost:3000/"])
+    # CORS(app, origins=["http://localhost:3000/"])
 
     # Register blueprints
     from app.routes.auth import auth_bp

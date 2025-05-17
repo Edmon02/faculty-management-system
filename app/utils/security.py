@@ -2,9 +2,16 @@ import hashlib
 import random
 import secrets
 import string
+import uuid
 from functools import wraps
 
 from flask import flash, redirect, render_template, session, url_for
+
+
+def get_mac_address():
+    """Get the MAC address of the current machine."""
+    mac_address = ":".join(["{:02x}".format((uuid.getnode() >> elements) & 0xFF) for elements in range(0, 2 * 6, 2)][::-1])
+    return mac_address
 
 
 def random_numbers(length):

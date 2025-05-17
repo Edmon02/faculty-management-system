@@ -1,15 +1,10 @@
 # app/routes/auth.py
-from datetime import datetime, timedelta
-
 from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, StringField
 from wtforms.validators import DataRequired
 
 from app.controllers.auth_controller import AuthController
-
-# from app.utils.security import get_mac_address
-# from app.utils.validators import validate_login
 
 auth_bp = Blueprint("auth", __name__)
 

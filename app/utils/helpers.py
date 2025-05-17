@@ -1,6 +1,5 @@
 import base64
 import mimetypes
-import uuid
 from datetime import datetime
 from functools import wraps
 from io import BytesIO
@@ -8,12 +7,6 @@ from io import BytesIO
 import pandas as pd
 from flask import flash, make_response, redirect, session, url_for
 from openpyxl import Workbook
-
-
-def get_mac_address():
-    """Get the MAC address of the current machine."""
-    mac_address = ":".join(["{:02x}".format((uuid.getnode() >> elements) & 0xFF) for elements in range(0, 2 * 6, 2)][::-1])
-    return mac_address
 
 
 def login_required(f):
