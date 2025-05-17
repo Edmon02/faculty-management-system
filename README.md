@@ -12,10 +12,8 @@ A comprehensive web application for managing faculty information, including stud
 
 The project follows a modular Flask application structure:
 
-  
-  
-
-flask_app/
+```
+faculty-management-system/
 
 ├── app/
 
@@ -54,7 +52,7 @@ flask_app/
 ├── run.py # Application entry point
 
 └── README.md # Project documentation
-
+```
   
 
 ## Features
