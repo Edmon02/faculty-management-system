@@ -20,6 +20,11 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CUSTOM_404_PAGE = ("404.html", 404)
     CUSTOM_429_PAGE = ("404.html", 429)
+    # RATELIMIT_STORAGE_URI = f"sqlite:///{os.path.join(basedir, 'instance', 'rate_limits.sqlite')}"
+    RATELIMIT_STRATEGY = "fixed-window"  # Best for SQLite
+    RATELIMIT_HEADERS_ENABLED = True
+    RATELIMIT_DEFAULT = ["200 per day", "50 per hour"]  # Global defaults
+    RATELIMIT_STORAGE_OPTIONS = {"connect_args": {"check_same_thread": False}, "poolclass": "StaticPool"}
 
     # Restricted routes configuration
     RESTRICTED_ROUTES = {
@@ -44,6 +49,9 @@ class Config:
         "admin": [],
     }
 
+    # Rate limits for specific routes (customize as needed)
+    RATELIMIT_ROUTES = {"/auth/login": ["10 per minute"], "/auth/register": ["5 per hour"], "/api/": ["100 per hour"], "/admin/": ["30 per minute"]}
+
     # Admin MAC address
     ADMIN_MAC_ADDRESS = "36:da:68:a3:8c:32"
 
@@ -63,6 +71,8 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     WTF_CSRF_ENABLED = False
     SESSION_COOKIE_SECURE = False
+    # Disable rate limiting in tests or use memory
+    RATELIMIT_STORAGE_URI = "memory://"
 
 
 class ProductionConfig(Config):
