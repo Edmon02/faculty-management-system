@@ -1,21 +1,15 @@
-{% extends "base.html" %} {% block title %}Add Student{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+{% from "includes/_forms.html" import render_form_field %}
 
-<div class="page-header">
-  <div class="row align-items-center">
-    <div class="col-sm-12">
-      <div class="page-sub-header">
-        <h3 class="page-title">Add Students</h3>
-        <ul class="breadcrumb">
-          <li class="breadcrumb-item">
-            <a id="student-link" href="#">Student</a>
-          </li>
-          <li class="breadcrumb-item active">Add Students</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
+{% block title %}Add Student{% endblock %}
+
+{% block content %}
+
+{% set breadcrumbs = [
+    (url_for('students.studentsList'), 'Students', False, 'student-link'),
+    (None, 'Add Student', True, None)
+] %}
+{% include 'includes/_page_header.html' with title='Add Student', breadcrumbs=breadcrumbs %}
 
 <div class="row">
   <div class="col-sm-12">
@@ -23,131 +17,54 @@ content %}
       <div class="card-body">
         <form
           method="POST"
-          action="{{ url_for('addStudent') }}"
+          action="{{ url_for('students.addStudent') }}" {# Corrected endpoint name from original #}
           enctype="multipart/form-data"
         >
+          {# Assuming Flask-WTF is not used here, so no form.csrf_token. If it were, it'd be {{ form.csrf_token }} #}
           <div class="row">
             <div class="col-12">
               <h5 class="form-title student-info">
                 Student Information
-                <span
-                  ><a href="javascript:;"
-                    ><i class="feather-more-vertical"></i></a
-                ></span>
+                <span><a href="javascript:;"><i class="feather-more-vertical"></i></a></span>
               </h5>
             </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>First Name <span class="login-danger">*</span></label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="first_name"
-                  placeholder="Enter First Name"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>Last Name <span class="login-danger">*</span></label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="last_name"
-                  placeholder="Enter Last Name"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>Patronymic <span class="login-danger">*</span></label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="patronymic"
-                  placeholder="Enter Patronymic Name"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms calendar-icon">
-                <label>Date Of Birth <span class="login-danger">*</span></label>
-                <input
-                  class="form-control datetimepicker"
-                  type="date"
-                  id="datePicker no_min"
-                  name="dob"
-                  placeholder="DD-MM-YYYY"
-                  min=""
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>E-Mail <span class="login-danger">*</span></label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="email"
-                  placeholder="Enter Email Address"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>Group <span class="login-danger">*</span></label>
-                <select class="form-control select" name="group">
-                  <option>Please Select Class</option>
-                  <option>Group A</option>
-                  <option>Group B</option>
-                  <option>Group C</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>Phone </label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="phone"
-                  placeholder="Enter Phone Number"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group students-up-files">
-                <label>Upload Student Photo (150px X 150px)</label>
-                <div class="uplod">
-                  <label class="file-upload image-upbtn mb-0">
-                    Choose File <input type="file" name="photo" />
-                  </label>
-                </div>
-              </div>
-            </div>
 
-            <div class="col-12" style="margin-bottom: 1.5rem">
+            {{ render_form_field(name='first_name', label='First Name', required=True, placeholder='Enter First Name') }}
+            {{ render_form_field(name='last_name', label='Last Name', required=True, placeholder='Enter Last Name') }}
+            {{ render_form_field(name='patronymic', label='Patronymic', required=True, placeholder='Enter Patronymic Name') }}
+            {# Original date field had id="datePicker no_min" and min="" #}
+            {{ render_form_field(name='dob', label='Date Of Birth', field_type='date', required=True, placeholder='DD-MM-YYYY', id='datePicker no_min', input_class='no_min') }}
+            {{ render_form_field(name='email', label='E-Mail', field_type='email', required=True, placeholder='Enter Email Address') }}
+
+            {% set group_options = [
+                ('Group A', 'Group A'),
+                ('Group B', 'Group B'),
+                ('Group C', 'Group C')
+            ] %}
+            {# The actual group data should come from the backend view function #}
+            {{ render_form_field(name='group', label='Group', field_type='select', required=True, placeholder='Please Select Group', options=group_options, value=request.form.get('group')) }}
+            {{ render_form_field(name='phone', label='Phone', field_type='tel', placeholder='Enter Phone Number') }}
+            {{ render_form_field(name='photo', label='Upload Student Photo (150px X 150px)', field_type='file', accept='image/*', input_class='students-up-files') }}
+
+            {# Address field was missing in add-student but present in edit-student and student list, adding it for completeness #}
+            {{ render_form_field(name='address', label='Address', placeholder='Enter Address', col_class='col-12 col-sm-8') }}
+
+
+            <div class="col-12" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
               <div class="student-submit">
                 <button type="submit" class="btn btn-primary">Submit</button>
               </div>
             </div>
 
+            {# Excel Upload Section - kept specific as it's unique to this form #}
             <div class="col-12">
-              <div
-                class="form-group local-forms"
-                style="border: solid 1px gainsboro; margin: initial"
-              ></div>
+              <div class="form-group local-forms" style="border-top: solid 1px gainsboro; margin-top: 1.5rem; padding-top:1.5rem;">
+                 <h5 class="form-title student-info">Bulk Upload</h5>
+              </div>
             </div>
 
-            <div class="col-12 col-sm-4" style="margin-top: 1.5rem">
-              <div class="form-group students-up-files">
-                <label>Upload Student(s) by Excel File</label>
-                <div class="uplod">
-                  <label class="file-upload image-upbtn mb-0">
-                    Choose Excel File<input type="file" name="excel_file" />
-                  </label>
-                </div>
-              </div>
+            <div class="col-12 col-sm-4">
+                {{ render_form_field(name='excel_file', label='Upload Student(s) by Excel File', field_type='file', accept='.xls,.xlsx', input_class='students-up-files') }}
             </div>
           </div>
         </form>

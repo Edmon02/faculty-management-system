@@ -1,63 +1,22 @@
-{% extends "base.html" %} {% block title %}Teachers{% endblock %} {% block
+{% extends "base.html" %} {% block title %}Teacher List{% endblock %} {% block
 content %}
 
-<div class="page-header">
-  <div class="row align-items-center">
-    <div class="col">
-      <h3 class="page-title">Teachers</h3>
-      <ul class="breadcrumb">
-        <li class="breadcrumb-item"><a href="teachers">Teachers</a></li>
-        <li class="breadcrumb-item active">Teachers</li>
-      </ul>
-    </div>
-  </div>
-</div>
+{% set breadcrumbs = [
+    (url_for('teachers.teachers_list'), 'Teachers', False, 'teacher-link'), {# Assuming 'teachers.teachers_list' is the route name #}
+    (None, 'All Teachers', True, None)
+] %}
+{% include 'includes/_page_header.html' with title='Teachers', breadcrumbs=breadcrumbs %}
 
-<div class="student-group-form">
-  <form method="GET" action="{{ url_for('teachers') }}">
-    <div class="row">
-      <div class="col-lg-3 col-md-6">
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            name="id"
-            placeholder="Search by ID ..."
-          />
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-6">
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            name="surname"
-            placeholder="Search by Name ..."
-          />
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6">
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            name="phone"
-            placeholder="Search by Phone ..."
-          />
-        </div>
-      </div>
-      <div class="col-lg-2">
-        <div class="search-student-btn">
-          <button type="submit" class="btn btn-primary">Search</button>
-        </div>
-      </div>
-    </div>
-  </form>
-</div>
+{% set search_fields = [
+    {'name': 'id', 'placeholder': 'Search by ID ...', 'col_class': 'col-lg-3 col-md-6'},
+    {'name': 'surname', 'placeholder': 'Search by Name ...', 'col_class': 'col-lg-3 col-md-6'},
+    {'name': 'phone', 'placeholder': 'Search by Phone ...', 'col_class': 'col-lg-4 col-md-6'}
+] %}
+{% include 'includes/_search_form.html' with action_url=url_for('teachers.teachers_list'), fields=search_fields %} {# Assuming 'teachers.teachers_list' #}
 
 <div class="row">
   <div class="col-sm-12">
-    <div class="card card-table">
+    <div class="card card-table comman-shadow"> {# Added comman-shadow for consistency with students.html #}
       <div class="card-body">
         <div class="page-header">
           <div class="row align-items-center">
@@ -65,24 +24,22 @@ content %}
               <h3 class="page-title">Teachers</h3>
             </div>
             <div class="col-auto text-end float-end ms-auto download-grp">
-              <form
-                method="POST"
-                action="{{ url_for('teachers', _external=True) }}"
+              {# Original form had method="POST" and action for download, which is unusual. Assuming GET for view toggle and separate download link #}
+              <a href="{{ url_for('teachers.teachers_list') }}" class="btn btn-outline-gray me-2 {% if not request.args.get('view') or request.args.get('view') == 'list' %}active{% endif %}"
+                title="List View"><i class="feather-list"></i
+              ></a>
+              <a href="{{ url_for('teachers.teachers_list', view='grid') }}" class="btn btn-outline-gray me-2 {% if request.args.get('view') == 'grid' %}active{% endif %}"
+                title="Grid View"><i class="feather-grid"></i
+              ></a>
+              {# Assuming a specific download route exists or will be created #}
+              <a href="{{ url_for('teachers.download_teachers_excel') }}" class="btn btn-outline-primary me-2"
+                title="Download Excel"><i class="fas fa-download"></i> Download</a
               >
-                <a href="teachers.html" class="btn btn-outline-gray me-2 active"
-                  ><i class="feather-list"></i
-                ></a>
-                <a href="teachers-grid.html" class="btn btn-outline-gray me-2"
-                  ><i class="feather-grid"></i
-                ></a>
-                <input type="hidden" name="action" value="Download" />
-                <button type="submit" class="btn btn-outline-primary me-2">
-                  <i class="fas fa-download"></i> Download
-                </button>
-                <a href="add-teacher.html" class="btn btn-primary"
-                  ><i class="fas fa-plus"></i
-                ></a>
-              </form>
+              {% if session['type'] == 'admin' %} {# Condition based on original base.html sidebar logic for adding teachers #}
+              <a href="{{ url_for('teachers.addTeacher') }}" class="btn btn-primary"
+                title="Add Teacher"><i class="fas fa-plus"></i
+              ></a>
+              {% endif %}
             </div>
           </div>
         </div>

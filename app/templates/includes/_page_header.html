@@ -1,0 +1,19 @@
+{# app/templates/includes/_page_header.html #}
+<div class="page-header">
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="page-sub-header">
+        <h3 class="page-title">{{ title }}</h3>
+        {% if breadcrumbs %}
+        <ul class="breadcrumb">
+          {% for url, text, is_active, item_id in breadcrumbs %}
+          <li class="breadcrumb-item {% if is_active %}active{% endif %}">
+            {% if url %}<a {% if item_id %}id="{{ item_id }}"{% endif %} href="{{ url }}">{{ text }}</a>{% else %}{{ text }}{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

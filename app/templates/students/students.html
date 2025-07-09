@@ -1,90 +1,53 @@
 {% extends "base.html" %} {% block title %}Student List{% endblock %} {% block
 content %}
 
-<div class="page-header">
-  <div class="row">
-    <div class="col-sm-12">
-      <div class="page-sub-header">
-        <h3 class="page-title">Students</h3>
-        <ul class="breadcrumb">
-          <li class="breadcrumb-item">
-            <a id="student-link" href="#">Student</a>
-          </li>
-          <li class="breadcrumb-item active">All Students</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
+{% set breadcrumbs = [
+    (url_for('students.studentsList'), 'Students', False, 'student-link'),
+    (None, 'All Students', True, None)
+] %}
+{% include 'includes/_page_header.html' with context %}
 
-<div class="student-group-form">
-  <form method="GET" action="{{ url_for('studentsList') }}">
-    <div class="row">
-      <div class="col-lg-3 col-md-6">
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            name="id"
-            placeholder="Search by ID ..."
-          />
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-6">
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            name="first_name"
-            placeholder="Search by Name ..."
-          />
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6">
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            name="phone"
-            placeholder="Search by Phone ..."
-          />
-        </div>
-      </div>
-      <div class="col-lg-2">
-        <div class="search-student-btn">
-          <button type="submit" class="btn btn-primary">Search</button>
-        </div>
-      </div>
-    </div>
-  </form>
-</div>
+{% set search_fields = [
+    {'name': 'id', 'placeholder': 'Search by ID ...', 'col_class': 'col-lg-3 col-md-6'},
+    {'name': 'first_name', 'placeholder': 'Search by Name ...', 'col_class': 'col-lg-3 col-md-6'},
+    {'name': 'phone', 'placeholder': 'Search by Phone ...', 'col_class': 'col-lg-4 col-md-6'}
+] %}
+{% include 'includes/_search_form.html' with action_url=url_for('students.studentsList'), fields=search_fields %}
+
 <div class="row">
   <div class="col-sm-12">
     <div class="card card-table comman-shadow">
       <div class="card-body">
+        {# Table Actions Header - Content defined directly as it's fairly specific #}
         <div class="page-header">
           <div class="row align-items-center">
             <div class="col">
-              <h3 class="page-title">Students</h3>
+              <h3 class="page-title">Students</h3> {# This title is specific to this section #}
             </div>
             <div class="col-auto text-end float-end ms-auto download-grp">
+              {# The form around buttons seems specific to 'Sort' action here #}
               <form
                 method="POST"
-                action="{{ url_for('studentsList', _external=True) }}"
+                action="{{ url_for('students.studentsList', _external=True) }}"
               >
-                <a href="students.html" class="btn btn-outline-gray me-2 active"
-                  ><i class="feather-list"></i
+                <a href="{{ url_for('students.studentsList') }}" class="btn btn-outline-gray me-2 {% if not request.args.get('view') or request.args.get('view') == 'list' %}active{% endif %}"
+                  title="List View"><i class="feather-list"></i
                 ></a>
-                <input type="hidden" name="action" value="Sort" />
-                <button type="submit" class="btn btn-outline-gray me-2">
-                  <i class="feather-grid"></i>
-                </button>
-                <a href="#" class="btn btn-outline-primary me-2"
-                  ><i class="fas fa-download"></i> Download</a
+                {# Assuming 'Sort' is a specific action related to a grid view or similar #}
+                {# To make this a generic grid toggle, it would need different handling #}
+                {# For now, keeping the existing sort/grid button as is. #}
+                {# A more generic approach would be separate buttons for 'Download', 'Add'. #}
+                 <a href="{{ url_for('students.studentsList', view='grid') }}" class="btn btn-outline-gray me-2 {% if request.args.get('view') == 'grid' %}active{% endif %}"
+                  title="Grid View"><i class="feather-grid"></i
+                ></a>
+                <a href="{{ url_for('students.download_students_excel') }}" class="btn btn-outline-primary me-2"
+                  title="Download Excel"><i class="fas fa-download"></i> Download</a
                 >
-                <a href="add-student.html" class="btn btn-primary"
-                  ><i class="fas fa-plus"></i
+                {% if session['is_Admin'] == 'True' %}
+                <a href="{{ url_for('students.addStudent') }}" class="btn btn-primary"
+                  title="Add Student"><i class="fas fa-plus"></i
                 ></a>
+                {% endif %}
               </form>
             </div>
           </div>

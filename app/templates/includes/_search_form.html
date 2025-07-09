@@ -1,0 +1,25 @@
+{# app/templates/includes/_search_form.html #}
+<div class="student-group-form"> {# This class might need to be more generic if used widely, or specific versions of this include created #}
+  <form method="GET" action="{{ action_url }}">
+    <div class="row">
+      {% for field in fields %}
+      <div class="{{ field.col_class | default('col-lg-3 col-md-6') }}">
+        <div class="form-group">
+          <input
+            type="{{ field.type | default('text') }}"
+            class="form-control"
+            name="{{ field.name }}"
+            placeholder="{{ field.placeholder }}"
+            value="{{ request.args.get(field.name, '') }}" {# Retain search values from query parameters #}
+          />
+        </div>
+      </div>
+      {% endfor %}
+      <div class="col-lg-2"> {# This column class for the button might also need to be configurable #}
+        <div class="search-student-btn">
+          <button type="submit" class="btn btn-primary">{{ button_text | default('Search') }}</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

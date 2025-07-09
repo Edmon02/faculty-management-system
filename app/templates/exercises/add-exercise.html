@@ -1,19 +1,15 @@
-{% extends "base.html" %} {% block title %}Student List{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+{% from "includes/_forms.html" import render_form_field %}
 
-<div class="page-header">
-  <div class="row align-items-center">
-    <div class="col-sm-12">
-      <div class="page-sub-header">
-        <h3 class="page-title">Add Exercise</h3>
-        <ul class="breadcrumb">
-          <li class="breadcrumb-item"><a href="/exercises">Exercises</a></li>
-          <li class="breadcrumb-item active">Add Exercise</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
+{% block title %}Add Exercise{% endblock %}
+
+{% block content %}
+
+{% set breadcrumbs = [
+    (url_for('exercises.exercises_list'), 'Exercises', False, None),
+    (None, 'Add Exercise', True, None)
+] %}
+{% include 'includes/_page_header.html' with title='Add Exercise', breadcrumbs=breadcrumbs %}
 
 <div class="row">
   <div class="col-sm-12">
@@ -21,72 +17,28 @@ content %}
       <div class="card-body">
         <form
           method="POST"
-          action="{{ url_for('addExercise') }}"
+          action="{{ url_for('exercises.addExercise') }}" {# Corrected endpoint from original file #}
           enctype="multipart/form-data"
         >
           <div class="row">
             <div class="col-12">
               <h5 class="form-title student-info">
                 Exercise Information
-                <span
-                  ><a href="javascript:;"
-                    ><i class="feather-more-vertical"></i></a
-                ></span>
+                <span><a href="javascript:;"><i class="feather-more-vertical"></i></a></span>
               </h5>
             </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>Subject Name <span class="login-danger">*</span></label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="subject_name"
-                  placeholder="Enter Subject Name"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>Group Name <span class="login-danger">*</span></label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="group_name"
-                  placeholder="Enter Group Name"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms calendar-icon">
-                <label>End Time <span class="login-danger">*</span></label>
-                <input
-                  class="form-control datetimepicker"
-                  type="date"
-                  id="datePicker"
-                  format="dd/mm/yyyy"
-                  name="end_time"
-                  placeholder="DD-MM-YYYY"
-                  min="{{ today }}"
-                  required
-                />
-              </div>
-              <i class="calendar-icon-icon"></i>
-            </div>
-            <div class="col-12">
-              <div class="form-group local-forms">
-                <label>Text <span class="login-danger">*</span></label>
-                <textarea
-                  class="form-control"
-                  id="exampleFormControlTextarea1"
-                  rows="3"
-                  name="messenge"
-                ></textarea>
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
+
+            {{ render_form_field(name='subject_name', label='Subject Name', required=True, placeholder='Enter Subject Name') }}
+            {{ render_form_field(name='group_name', label='Group Name', required=True, placeholder='Enter Group Name') }}
+            {# The 'today' variable should be passed from the Flask view for the min attribute to work correctly #}
+            {{ render_form_field(name='end_time', label='End Time', field_type='date', required=True, placeholder='DD-MM-YYYY', id='datePicker', input_class='datetimepicker', value=today if today else '') }}
+
+            {{ render_form_field(name='messenge', label='Text', field_type='textarea', required=True, placeholder='Enter exercise text/description', rows=5) }} {# Typo 'messenge' kept from original #}
+
+            <div class="col-12 col-sm-4"> {# File upload needs specific layout for label and error #}
               <div class="form-group students-up-files">
-                <label id="fileLabel"></label><br />
-                <label>Upload File <10mg </label>
+                <label>Upload File (&lt;10MB)</label> {# Changed <10mg to <10MB #}
+                <div id="fileLabelDisplay" style="margin-bottom: 5px; font-style: italic;"></div> {# For displaying selected file name #}
                 <div class="uplod">
                   <label class="file-upload image-upbtn mb-0">
                     Choose File
@@ -94,9 +46,9 @@ content %}
                       id="fileInput"
                       type="file"
                       name="file"
-                      accept="application/pdf, ,application/msword"
+                      accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" {# More specific accept types #}
                       style="display: none"
-                      onchange="updateFileName()"
+                      onchange="updateFileNameJs()" {# Renamed to avoid conflict if previewImage is also used #}
                     />
                   </label>
                 </div>
@@ -105,7 +57,6 @@ content %}
                   id="errorContainer"
                   style="display: none"
                 ></div>
-                <!-- Error message container -->
               </div>
             </div>
 
@@ -120,4 +71,60 @@ content %}
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Script for file input name display and validation
+    // Note: The original updateFileName() was in base.html; this is a more localized version.
+    // It's better if base.html's global functions are namespaced or removed if only used here.
+    const fileInputElement = document.getElementById("fileInput");
+    const fileLabelDisplayElement = document.getElementById("fileLabelDisplay");
+    const errorContainerElement = document.getElementById("errorContainer");
+
+    if (fileInputElement && fileLabelDisplayElement && errorContainerElement) {
+      window.updateFileNameJs = function() { // Make it global for onchange, or add listener here
+        if (fileInputElement.files.length > 0) {
+          const selectedFile = fileInputElement.files[0];
+          const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
+
+          if (selectedFile.size > maxSizeInBytes) {
+            errorContainerElement.style.display = "block";
+            errorContainerElement.textContent = "File size exceeds the limit (10MB). Please choose a smaller file.";
+            fileInputElement.value = ""; // Clear the file input
+            fileLabelDisplayElement.textContent = "";
+            return;
+          }
+
+          // Truncate file name logic (from base.html, now localized)
+          let fileName = selectedFile.name;
+          const maxLength = 30;
+          if (fileName.length > maxLength) {
+            const startLength = Math.floor((maxLength - 3) / 2);
+            const endLength = maxLength - startLength - 3;
+            fileName = fileName.substring(0, startLength) + "..." + fileName.substring(fileName.length - endLength);
+          }
+          fileLabelDisplayElement.textContent = fileName;
+          errorContainerElement.style.display = "none";
+          errorContainerElement.textContent = "";
+        } else {
+          fileLabelDisplayElement.textContent = "";
+          errorContainerElement.style.display = "none";
+          errorContainerElement.textContent = "";
+        }
+      };
+      // If onchange="updateFileNameJs()" is removed from input, add event listener here:
+      // fileInputElement.addEventListener('change', updateFileNameJs);
+    }
+
+    // Datepicker min date (today) - this requires 'today' to be passed from Flask view
+    // For example, in your Flask route: `today_date = datetime.date.today().isoformat()`
+    // And then pass `today=today_date` to render_template.
+    // The `value=today if today else ''` in the macro handles if it's not passed.
+    // The min attribute is set directly in the macro for date fields if not 'no_min'.
+    // If `id="datePicker"` is used by global JS in base.html, that global JS should check for element existence.
+  });
+</script>
 {% endblock %}
