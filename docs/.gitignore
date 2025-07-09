@@ -1,0 +1,29 @@
+# Ignore common static site generator build outputs
+site/
+_site/
+public/
+build/
+
+# Ignore Python virtual environments that might be created for docs tools
+venv/
+.venv/
+
+# Ignore cache files from documentation tools
+.cache/
+*.db
+
+# MkDocs specific
+mkdocs.yml.lock
+
+# Docusaurus specific
+.docusaurus/
+node_modules/
+package-lock.json
+yarn.lock
+
+# Jupyter Book specific
+_build/
+
+# User-specific local configuration (if any)
+config.local.yml
+mkdocs.local.yml

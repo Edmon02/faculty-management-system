@@ -1,42 +1,34 @@
-{% extends "base.html" %} {% block title %}Add News{% endblock %} {% block
-content %}
-<meta charset="utf-8" />
-<meta
-  name="viewport"
-  content="width=device-width,initial-scale=1,shrink-to-fit=no"
-/>
-<meta name="theme-color" content="#000000" />
-<link rel="manifest" href="/manifest.json" />
-<link rel="shortcut icon" href="/favicon.ico" />
+{% extends "base.html" %} {% block title %}Add News{% endblock %}
 
-<noscript>You need to enable JavaScript to run this app.</noscript>
-<div class="page-header">
-  <div class="row align-items-center">
-    <div class="col-sm-12">
-      <div class="page-sub-header">
-        <h3 class="page-title">Add News</h3>
-      </div>
-    </div>
-  </div>
-</div>
+{% block content %}
+
+{% include 'includes/_page_header.html' with title='Add News' %}
+
 <div class="row">
   <div class="col-sm-12">
     <div class="card comman-shadow">
       <div class="card-body">
         <form
           method="POST"
-          action="{{ url_for('addNews') }}"
+          action="{{ url_for('news.addNews') }}" {# Assuming 'news.addNews' is the correct endpoint #}
           enctype="multipart/form-data"
         >
-          <div class="col">
-            <div class="col-12 col-sm-4">
+          {# CSRF Token should be included if not automatically handled by Flask-WTF Form object #}
+          {# If using Flask-WTF, form.csrf_token would be here, e.g. {{ form.csrf_token }} #}
+          {# For now, assuming it's handled or will be added if form is a WTForm #}
+
+          <div class="row"> {# Using .row for better structure of form elements #}
+            <div class="col-12 col-md-6 col-lg-4">
               <div class="form-group local-forms">
-                <!-- <input type="file" id="img" name="img" accept="image/*"> -->
+                <label>Image Upload</label>
+                {# This is where the React component for file upload will render #}
                 <div id="root"></div>
+                {# The actual file input will be part of the React component.
+                   The name 'image' will be expected by the backend if that's what React component uses. #}
               </div>
             </div>
 
-            <div class="col-12 col-sm-4">
+            <div class="col-12 col-md-6 col-lg-4">
               <div class="form-group local-forms">
                 <label>Category <span class="login-danger">*</span></label>
                 <input
@@ -44,11 +36,12 @@ content %}
                   type="text"
                   name="category"
                   placeholder="Enter Category Name"
+                  required
                 />
               </div>
             </div>
 
-            <div class="col-12 col-sm-4">
+            <div class="col-12 col-md-6 col-lg-4">
               <div class="form-group local-forms">
                 <label>Title <span class="login-danger">*</span></label>
                 <input
@@ -57,6 +50,7 @@ content %}
                   type="text"
                   name="title"
                   placeholder="Enter Title Name"
+                  required
                 />
               </div>
             </div>
@@ -66,17 +60,17 @@ content %}
                 <label>Text <span class="login-danger">*</span></label>
                 <textarea
                   class="form-control"
-                  id="exampleFormControlTextarea1"
-                  rows="3"
-                  name="messenge"
-                  cols="2"
+                  id="exampleFormControlTextarea1" {# Consider if this ID is used by any JS, otherwise can be removed #}
+                  rows="5" {# Increased rows slightly #}
+                  name="messenge" {# Typo 'messenge' kept from original, should ideally be 'message' #}
+                  required
                 ></textarea>
               </div>
             </div>
 
             <div class="col-12">
               <div class="student-submit">
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="submit" class="btn btn-primary">Submit News</button>
               </div>
             </div>
           </div>
@@ -86,33 +80,12 @@ content %}
   </div>
 </div>
 
-<script>
-  function previewImage(event) {
-    const input = event.target;
-    const reader = new FileReader();
+{% endblock %}
 
-    reader.onload = function () {
-      document.getElementById("preview").src = reader.result;
-    };
+{% block scripts %}
+{{ super() }}
 
-    reader.readAsDataURL(input.files[0]);
-  }
-
-  document.getElementById("imageUpload").addEventListener("click", function () {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.name = "image";
-    fileInput.accept = "image/*";
-    fileInput.style.display = "none";
-
-    fileInput.addEventListener("change", previewImage);
-
-    document.body.appendChild(fileInput);
-    fileInput.click();
-    document.body.removeChild(fileInput);
-  });
-</script>
-
+{# Scripts for the React File Upload Component #}
 <script>
   !(function (e) {
     function r(r) {
@@ -195,7 +168,9 @@ content %}
       (i.o = function (e, r) {
         return Object.prototype.hasOwnProperty.call(e, r);
       }),
-      (i.p = "/");
+      (i.p = "/"); // This publicPath might need adjustment depending on deployment if chunks are not found.
+                  // For static export, it might be './' or based on where Flask serves static files.
+                  // Given Flask's `url_for('static', ...)` usually resolves from app/static, `/` might be okay if chunks are in `app/static/js`.
     var l = (this["webpackJsonpreact-file-compression"] =
         this["webpackJsonpreact-file-compression"] || []),
       f = l.push.bind(l);
@@ -207,4 +182,60 @@ content %}
 </script>
 <script src="{{ url_for('static', filename='js/2.4a2961fb.chunk.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.c03f3d88.chunk.js') }}"></script>
+
+{# The following script for previewImage was in the original template.
+   It assumes elements with id="preview" and id="imageUpload" exist.
+   These would likely be created by the React component rendered into #root.
+   It's unusual for external JS to interact with React component internals this way,
+   but kept for now as refactoring the React part is out of scope. #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // This function might be redundant if the React component handles its own preview.
+  function previewImage(event) {
+    const input = event.target;
+    const reader = new FileReader();
+    const previewElement = document.getElementById("preview");
+
+    if (!previewElement) {
+      console.warn("Element with ID 'preview' not found for image preview.");
+      return;
+    }
+
+    reader.onload = function () {
+      previewElement.src = reader.result;
+    };
+
+    if (input.files && input.files[0]) {
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  // This click listener might also be redundant if the React component handles its own file input.
+  // Or, it might be intended to trigger a hidden file input within the React component.
+  const imageUploadButton = document.getElementById("imageUpload");
+  if (imageUploadButton) {
+    imageUploadButton.addEventListener("click", function () {
+      // This part is tricky: it creates a new file input.
+      // The React component likely has its own. This could conflict or be unused.
+      // For minimal changes, it's kept, but this interaction is fragile.
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.name = "image"; // Ensure this name matches what backend expects if this input is used
+      fileInput.accept = "image/*";
+      fileInput.style.display = "none"; // Hidden, standard practice for custom styled upload buttons
+
+      fileInput.addEventListener("change", previewImage);
+
+      document.body.appendChild(fileInput);
+      fileInput.click();
+      document.body.removeChild(fileInput); // Clean up the temporary input
+    });
+  } else {
+    // It's possible 'imageUpload' is an ID *within* the React component,
+    // in which case this global listener won't attach correctly until React renders it.
+    // Or, this script is simply not needed if React handles the upload button.
+    console.warn("Element with ID 'imageUpload' not found for click listener attachment.");
+  }
+});
+</script>
 {% endblock %}

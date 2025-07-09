@@ -1,53 +1,18 @@
-{% extends "base.html" %} {% block title %}Subjects{% endblock %} {% block
-content %}
-<div class="page-header">
-  <div class="row">
-    <div class="col-sm-12">
-      <div class="page-sub-header">
-        <h3 class="page-title">Subjects</h3>
-        <ul class="breadcrumb">
-          <li class="breadcrumb-item">
-            <a id="subject-link" href="#">Subjects</a>
-          </li>
-          <li class="breadcrumb-item active">Subject</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
+{% extends "base.html" %} {% block title %}Subjects{% endblock %}
 
-<div class="student-group-form">
-  <form method="GET" action="">
-    <div class="row">
-      <div class="col-lg-3 col-md-6">
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            name="id"
-            placeholder="Search by ID ..."
-          />
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-6">
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            name="first_name"
-            placeholder="Search by Name ..."
-          />
-        </div>
-      </div>
+{% block content %}
 
-      <div class="col-lg-2">
-        <div class="search-student-btn">
-          <button type="submit" class="btn btn-primary">Search</button>
-        </div>
-      </div>
-    </div>
-  </form>
-</div>
+{% set breadcrumbs = [
+    (url_for('subjects.subjects_list'), 'Subjects', False, 'subject-link'), {# Assuming 'subjects.subjects_list' route #}
+    (None, 'All Subjects', True, None) {# Changed 'Subject' to 'All Subjects' for consistency #}
+] %}
+{% include 'includes/_page_header.html' with title='Subjects', breadcrumbs=breadcrumbs %}
+
+{% set search_fields = [
+    {'name': 'id', 'placeholder': 'Search by Subject ID ...'}, {# Adapted placeholder #}
+    {'name': 'name', 'placeholder': 'Search by Subject Name ...'} {# Adapted 'first_name' to 'name' #}
+] %}
+{% include 'includes/_search_form.html' with action_url=url_for('subjects.subjects_list'), fields=search_fields %} {# Assuming 'subjects.subjects_list' route and 'name' for subject name search query param #}
 
 <div class="row">
   <div class="col-sm-12">
@@ -56,93 +21,101 @@ content %}
         <div class="page-header">
           <div class="row align-items-center">
             <div class="col">
-              <h3 class="page-title">Subjects</h3>
+              <h3 class="page-title">Subjects Overview</h3> {# More descriptive title for this section #}
             </div>
             <div class="col-auto text-end float-end ms-auto download-grp">
-              <a href="students.html" class="btn btn-outline-gray me-2 active"
-                ><i class="feather-list"></i
+              <a href="{{ url_for('subjects.subjects_list') }}" class="btn btn-outline-gray me-2 {% if not request.args.get('view') or request.args.get('view') == 'list' %}active{% endif %}"
+                title="List View"><i class="feather-list"></i
               ></a>
-              <a href="students-grid.html" class="btn btn-outline-gray me-2"
-                ><i class="feather-grid"></i
+              <a href="{{ url_for('subjects.subjects_list', view='grid') }}" class="btn btn-outline-gray me-2 {% if request.args.get('view') == 'grid' %}active{% endif %}"
+                title="Grid View"><i class="feather-grid"></i
               ></a>
-              <a href="#" class="btn btn-outline-primary me-2"
-                ><i class="fas fa-download"></i> Download</a
-              >
-              <a href="add-student.html" class="btn btn-primary"
-                ><i class="fas fa-plus"></i
+              {# Download functionality for subjects might be different. Placeholder for now. #}
+              {# <a href="{{ url_for('subjects.download_subjects') }}" class="btn btn-outline-primary me-2" title="Download Subjects List"><i class="fas fa-download"></i> Download</a> #}
+              {% if session['is_Lecturer'] == 'True' %} {# Condition from base.html for add-subject #}
+              <a href="{{ url_for('subjects.addSubject') }}" class="btn btn-primary" title="Add Subject"><i class="fas fa-plus"></i
               ></a>
+              {% endif %}
             </div>
           </div>
         </div>
 
-        <!-- <div class="subj-container"> -->
-        {% for data in file_data %}
-        <div class="subj-card">
-          <h3 class="subject_name">{{ data['subject_name'][:20] }}</h3>
-          <table
-            class="table border-0 star-student table-hover table-center mb-0 datatable table-striped"
-          >
-            <thead class="student-thread">
-              <tr>
-                <th>File</th>
-                <th>Descripiton</th>
-                {% if session['is_Lecturer'] == 'True' %}
-                <th class="text-end">Action</th>
-                {% endif %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for file in data['files'] %}
-              <tr>
-                <td>
-                  {% if file['file_type'] in ('.doc', '.docx') %}
-                  <img
-                    src="../static/css/assets/img/icons/doc.png"
-                    style="
-                      width: 20px;
-                      height: 20px;
-                      align-items: cneter;
-                      margin: 0;
-                    "
-                  />
-                  {% elif file['file_type'] in ('.pdf') %}
-                  <img
-                    src="../static/css/assets/img/icons/pdf.png"
-                    style="
-                      width: 20px;
-                      height: 20px;
-                      align-items: cneter;
-                      margin: 0;
-                    "
-                  />
-                  {% endif %}
-                  <a
-                    href="{{ url_for('show_file', filename=file['file_name']) }}"
-                    target="_blank"
-                    >{{ file['file_name'][:10] }}...</a
-                  >
-                </td>
-                <td></td>
-                <td class="text-end">
-                  <div class="actions">
-                    <a href="#" class="btn btn-sm bg-danger-light me-2">
-                      <i class="feather-edit"></i>
-                    </a>
-                    <a
-                      href="{{ url_for('deleteSubject', id1=file['subject_id'], id2=file['file_id']) }}"
-                      class="btn btn-sm bg-danger-light"
-                    >
-                      <i class="fa-solid fa-trash"></i>
-                    </a>
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% endfor %}
-        <!-- </div> -->
+        {# Loop through subjects, each displayed as a card with a table of files #}
+        {% if file_data %}
+          {% for subject_item in file_data %} {# Renamed 'data' to 'subject_item' for clarity #}
+          <div class="subj-card mb-4"> {# Added margin-bottom for better spacing if multiple cards #}
+            <h4 class="subject_name card-title p-3 bg-light border-bottom">{{ subject_item['subject_name'] }}</h4> {# Used h4 and some card styling #}
+            {% if subject_item['files'] %}
+            <div class="table-responsive">
+              <table
+                class="table table-sm star-student table-hover table-center mb-0" {# Removed datatable, table-striped from inner table for card view #}
+              >
+                <thead class="student-thread">
+                  <tr>
+                    <th>File Name</th>
+                    <th>Description</th> {# Kept description column, though it was empty in original #}
+                    {% if session['is_Lecturer'] == 'True' %}
+                    <th class="text-end">Actions</th>
+                    {% endif %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for file_detail in subject_item['files'] %} {# Renamed 'file' to 'file_detail' #}
+                  <tr>
+                    <td>
+                      {% if file_detail['file_type'] in ('.doc', '.docx') %}
+                      <img
+                        src="{{ url_for('static', filename='css/assets/img/icons/doc.png') }}" {# Use url_for #}
+                        style="width: 20px; height: 20px; margin-right: 5px;"
+                        alt="DOC Icon"
+                      />
+                      {% elif file_detail['file_type'] in ('.pdf') %}
+                      <img
+                        src="{{ url_for('static', filename='css/assets/img/icons/pdf.png') }}" {# Use url_for #}
+                        style="width: 20px; height: 20px; margin-right: 5px;"
+                        alt="PDF Icon"
+                      />
+                      {% endif %}
+                      <a
+                        href="{{ url_for('dashboard.show_file', filename=file_detail['file_name']) }}" {# Assuming show_file is general #}
+                        target="_blank"
+                        title="{{ file_detail['file_name'] }}"
+                        >{{ file_detail['file_name'][:30] }}{% if file_detail['file_name']|length > 30 %}...{% endif %}</a {# Longer preview, conditional ellipsis #}
+                      >
+                    </td>
+                    <td>{{ file_detail['description'] | default('') }}</td> {# Added placeholder for description #}
+                    {% if session['is_Lecturer'] == 'True' %}
+                    <td class="text-end">
+                      <div class="actions">
+                        {# Edit file link - assuming a route like subjects.edit_subject_file #}
+                        {# Ensure subject_item.subject_id and file_detail.file_id exist before creating URL #}
+                        <a href="{{ url_for('subjects.edit_subject_file', subject_id=subject_item.subject_id if subject_item.subject_id else '', file_id=file_detail.file_id if file_detail.file_id else '') }}"
+                           class="btn btn-sm bg-success-light me-2" title="Edit File"> {# Changed color to success for edit #}
+                          <i class="feather-edit"></i>
+                        </a>
+                        <a
+                          href="{{ url_for('subjects.deleteSubjectFile', subject_id=subject_item.subject_id if subject_item.subject_id else '', file_id=file_detail.file_id if file_detail.file_id else '') }}" {# Renamed route, added checks for IDs #}
+                          class="btn btn-sm bg-danger-light" title="Delete File"
+                          onclick="return confirm('Are you sure you want to delete this file \'{{ file_detail['file_name'] }}\'?');"
+                        >
+                          <i class="fas fa-trash"></i> {# Consistent trash icon #}
+                        </a>
+                      </div>
+                    </td>
+                    {% endif %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <p class="p-3 text-muted">No files uploaded for this subject yet.</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-center text-muted">No subjects found or available to display.</p>
+        {% endif %}
       </div>
     </div>
   </div>

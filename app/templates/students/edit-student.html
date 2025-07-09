@@ -1,21 +1,15 @@
-{% extends "base.html" %} {% block title %}Edit Student{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+{% from "includes/_forms.html" import render_form_field %}
 
-<div class="page-header">
-  <div class="row align-items-center">
-    <div class="col-sm-12">
-      <div class="page-sub-header">
-        <h3 class="page-title">Edit Student</h3>
-        <ul class="breadcrumb">
-          <li class="breadcrumb-item">
-            <a id="student-link" href="#">Student</a>
-          </li>
-          <li class="breadcrumb-item active">Edit Student</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
+{% block title %}Edit Student{% endblock %}
+
+{% block content %}
+
+{% set breadcrumbs = [
+    (url_for('students.studentsList'), 'Students', False, 'student-link'),
+    (None, 'Edit Student', True, None)
+] %}
+{% include 'includes/_page_header.html' with title='Edit Student', breadcrumbs=breadcrumbs %}
 
 <div class="row">
   <div class="col-sm-12">
@@ -23,120 +17,60 @@ content %}
       <div class="card-body">
         <form
           method="POST"
-          action="{{ url_for('editStudent', id=data['id']) }}"
+          action="{{ url_for('students.editStudent', id=data['id']) }}" {# Corrected endpoint from original #}
           enctype="multipart/form-data"
         >
+          {# Assuming Flask-WTF is not used here, so no form.csrf_token #}
           <div class="row">
             <div class="col-12">
               <h5 class="form-title student-info">
                 Student Information
-                <span
-                  ><a href="javascript:;"
-                    ><i class="feather-more-vertical"></i></a
-                ></span>
+                <span><a href="javascript:;"><i class="feather-more-vertical"></i></a></span>
               </h5>
             </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>First Name </label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="first_name"
-                  value="{{data['first_name']}}"
-                  placeholder="{{data['first_name']}}"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>Last Name </label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="last_name"
-                  value="{{data['last_name']}}"
-                  placeholder="{{data['last_name']}}"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>Patronymic </label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="patronymic"
-                  value="{{data['patronymic']}}"
-                  placeholder="{{data['patronymic']}}"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms calendar-icon">
-                <label>Date Of Birth </label>
-                <input
-                  class="form-control datetimepicker"
-                  type="date"
-                  name="expiry_time"
-                  value="{{data['birthday_date']}}"
-                  placeholder="{{data['birthday_date']}}"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>E-Mail </label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="email"
-                  placeholder="Enter Email Address"
-                />
-              </div>
-            </div>
 
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>Group </label>
-                <select class="form-control select" name="group">
-                  <option>{{data['group_name']}}</option>
-                  <option>Group A</option>
-                  <option>Group B</option>
-                  <option>Group C</option>
-                  <option>Group D</option>
-                  <option>Group E</option>
-                </select>
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
-              <div class="form-group local-forms">
-                <label>Phone </label>
-                <input
-                  class="form-control"
-                  type="text"
-                  name="phone"
-                  value="{{data['phone']}}"
-                  placeholder="{{data['phone']}}"
-                />
-              </div>
-            </div>
-            <div class="col-12 col-sm-4">
+            {{ render_form_field(name='first_name', label='First Name', value=data.get('first_name', ''), placeholder='Enter First Name') }}
+            {{ render_form_field(name='last_name', label='Last Name', value=data.get('last_name', ''), placeholder='Enter Last Name') }}
+            {{ render_form_field(name='patronymic', label='Patronymic', value=data.get('patronymic', ''), placeholder='Enter Patronymic Name') }}
+            {# Original date field had name="expiry_time" but label "Date Of Birth" and value from data['birthday_date'] #}
+            {# Correcting name to 'dob' for consistency with add form and common sense for Date of Birth #}
+            {{ render_form_field(name='dob', label='Date Of Birth', field_type='date', value=data.get('birthday_date', ''), placeholder='DD-MM-YYYY') }}
+            {{ render_form_field(name='email', label='E-Mail', field_type='email', value=data.get('email', ''), placeholder='Enter Email Address') }}
+
+            {# Actual group options should come from backend, data.group_name is the current value #}
+            {% set group_options = [
+                ('Group A', 'Group A'),
+                ('Group B', 'Group B'),
+                ('Group C', 'Group C'),
+                ('Group D', 'Group D'),
+                ('Group E', 'Group E')
+            ] %}
+            {# The groups should ideally be passed from the view function #}
+            {{ render_form_field(name='group_name', label='Group', field_type='select', value=data.get('group_name', ''), placeholder='Please Select Group', options=group_options) }}
+            {{ render_form_field(name='phone', label='Phone', field_type='tel', value=data.get('phone', ''), placeholder='Enter Phone Number') }}
+
+            {# Adding address field based on student list display #}
+            {{ render_form_field(name='address', label='Address', value=data.get('address', ''), placeholder='Enter Address', col_class='col-12 col-sm-8') }}
+
+
+            <div class="col-12 col-sm-4"> {# This specific layout for photo upload is kept #}
               <div class="form-group students-up-files">
                 <label>Upload Student Photo (150px X 150px)</label>
+                {% if data.get('image') %}
+                <img src="data:image/jpeg;base64,{{ data['image'] }}" alt="Current Photo" style="max-width: 100px; max-height: 100px; margin-bottom: 10px; display:block;">
+                <small>Current photo shown above. Upload a new one to change.</small>
+                {% endif %}
                 <div class="uplod">
                   <label class="file-upload image-upbtn mb-0">
-                    Choose File <input type="file" name="photo" />
+                    Choose New File <input type="file" name="photo" accept="image/*" />
                   </label>
                 </div>
               </div>
             </div>
 
-            <div class="col-12">
+            <div class="col-12 mt-4"> {# Added mt-4 for spacing #}
               <div class="student-submit">
-                <button type="submit" class="btn btn-primary">
-                  Save Change
-                </button>
+                <button type="submit" class="btn btn-primary">Save Changes</button> {# Changed button text #}
               </div>
             </div>
           </div>

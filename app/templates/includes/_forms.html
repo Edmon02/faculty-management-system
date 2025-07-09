@@ -1,0 +1,45 @@
+{# app/templates/includes/_forms.html #}
+
+{% macro render_form_field(name, label, field_type='text', value='', placeholder='', required=False, col_class='col-12 col-sm-4', options=None, input_class='', accept=None, minlength=None, rows=3, id=None) %}
+<div class="{{ col_class }}">
+  <div class="form-group local-forms {% if field_type == 'date' %}calendar-icon{% endif %} {% if field_type == 'file' and 'students-up-files' in input_class %}students-up-files{% endif %}">
+    <label>{{ label }} {% if required %}<span class="login-danger">*</span>{% endif %}</label>
+    {% if field_type == 'select' %}
+      <select class="form-control select {{ input_class }}" name="{{ name }}" {% if id %}id="{{ id }}"{% endif %} {% if required %}required{% endif %}>
+        {% if placeholder %}<option value="">{{ placeholder }}</option>{% endif %}
+        {% for opt_value, opt_text in options %}
+          <option value="{{ opt_value }}" {% if opt_value|string == value|string %}selected{% endif %}>{{ opt_text }}</option>
+        {% endfor %}
+      </select>
+    {% elif field_type == 'file' %}
+      <div class="uplod">
+        <label class="file-upload image-upbtn mb-0">
+            Choose File <input type="file" name="{{ name }}" class="{{ input_class }}" {% if id %}id="{{ id }}"{% endif %} {% if accept %}accept="{{ accept }}"{% endif %} {% if required %}required{% endif %}/>
+        </label>
+      </div>
+    {% elif field_type == 'textarea' %}
+        <textarea class="form-control {{ input_class }}"
+                  name="{{ name }}"
+                  placeholder="{{ placeholder if placeholder else 'Enter ' ~ label }}"
+                  rows="{{ rows }}"
+                  {% if id %}id="{{ id }}"{% endif %}
+                  {% if required %}required{% endif %}>{{ value }}</textarea>
+    {% else %}
+      <input class="form-control {{ input_class }} {% if field_type == 'date' %}datetimepicker{% endif %}"
+             type="{{ field_type }}"
+             name="{{ name }}"
+             value="{{ value }}"
+             placeholder="{{ placeholder if placeholder else 'Enter ' ~ label }}"
+             {% if id %}
+                id="{{ id }}"
+             {% elif field_type == 'date' and 'no_min' not in input_class %}
+                id="datePicker"
+             {% endif %}
+             {% if field_type == 'date' and 'no_min' in input_class %} min="" {% endif %} {# Original had min="" for this case #}
+             {% if required %}required{% endif %}
+             {% if minlength %}minlength="{{ minlength }}"{% endif %}
+      />
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}

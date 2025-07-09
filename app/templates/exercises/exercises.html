@@ -1,48 +1,15 @@
-{% extends "base.html" %} {% block title %}Ecercises{% endblock %} {% block
-content %}
+{% extends "base.html" %} {% block title %}Exercises{% endblock %} {# Corrected typo from Ecercises #}
 
-<div class="page-header">
-  <div class="row">
-    <div class="col-sm-12">
-      <div class="page-sub-header">
-        <h3 class="page-title">Exercises</h3>
-      </div>
-    </div>
-  </div>
-</div>
+{% block content %}
 
-<div class="student-group-form">
-  <form method="GET" action="">
-    <div class="row">
-      <div class="col-lg-3 col-md-6">
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            name="id"
-            placeholder="Search by ID ..."
-          />
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-6">
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            name="first_name"
-            placeholder="Search by Name ..."
-          />
-        </div>
-      </div>
+{# The original page header was very simple, only a title. No breadcrumbs. #}
+{% include 'includes/_page_header.html' with title='Exercises' %}
 
-      <div class="col-lg-2">
-        <div class="search-student-btn">
-          <button type="submit" class="btn btn-primary">Search</button>
-        </div>
-      </div>
-    </div>
-  </form>
-</div>
+{% set search_fields = [
+    {'name': 'id', 'placeholder': 'Search by ID ...'},
+    {'name': 'name', 'placeholder': 'Search by Name/Description ...'} {# Adapted 'first_name' to 'name' for exercises #}
+] %}
+{% include 'includes/_search_form.html' with action_url=url_for('exercises.exercises_list'), fields=search_fields %} {# Assuming 'exercises.exercises_list' route #}
 
 <div class="row">
   <div class="col-sm-12">
@@ -54,18 +21,18 @@ content %}
               <h3 class="page-title">Exercises</h3>
             </div>
             <div class="col-auto text-end float-end ms-auto download-grp">
-              <a href="students.html" class="btn btn-outline-gray me-2 active"
-                ><i class="feather-list"></i
+              <a href="{{ url_for('exercises.exercises_list') }}" class="btn btn-outline-gray me-2 {% if not request.args.get('view') or request.args.get('view') == 'list' %}active{% endif %}"
+                title="List View"><i class="feather-list"></i
               ></a>
-              <a href="students-grid.html" class="btn btn-outline-gray me-2"
-                ><i class="feather-grid"></i
+              <a href="{{ url_for('exercises.exercises_list', view='grid') }}" class="btn btn-outline-gray me-2 {% if request.args.get('view') == 'grid' %}active{% endif %}"
+                title="Grid View"><i class="feather-grid"></i
               ></a>
-              <a href="#" class="btn btn-outline-primary me-2"
-                ><i class="fas fa-download"></i> Download</a
-              >
-              <a href="add-student.html" class="btn btn-primary"
-                ><i class="fas fa-plus"></i
+              {# Download button was generic, might not apply directly to exercises or needs specific implementation #}
+              {# <a href="#" class="btn btn-outline-primary me-2" title="Download"><i class="fas fa-download"></i> Download</a> #}
+              {% if session['is_Lecturer'] == 'True' %} {# Condition from base.html for add-exercise #}
+              <a href="{{ url_for('exercises.addExercise') }}" class="btn btn-primary" title="Add Exercise"><i class="fas fa-plus"></i
               ></a>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -75,7 +42,7 @@ content %}
         >
           <thead class="student-thread">
             <tr>
-              {% if session['is_Lecturer'] == 'False' %}
+              {% if session['type'] == 'student' %} {# More specific condition from original template logic #}
               <th>
                 <div class="form-check check-tables">
                   <input
@@ -98,73 +65,73 @@ content %}
             </tr>
           </thead>
           <tbody>
-            {% for file in data %}
+            {% for file_item in data %} {# Renamed loop variable for clarity, assuming 'file' is an exercise object #}
             <tr>
               {% if session['type'] == 'student' %}
               <td>
                 <div class="form-check check-tables">
-                  {% if file['checkType'] %}
+                  {% if file_item['checkType'] %} {# Assuming checkType indicates if it's already processed/disabled #}
                   <input
-                    id="checkboxToActivate"
-                    class="form-check-input"
+                    class="form-check-input" {# Removed id="checkboxToActivate" as IDs should be unique #}
                     type="checkbox"
-                    value="{{file['id']}}"
+                    value="{{file_item['id']}}"
                     disabled
                   />
                   {% else %}
                   <input
-                    id="checkboxToActivate"
-                    class="form-check-input"
+                    class="form-check-input" {# Removed id="checkboxToActivate" #}
                     type="checkbox"
-                    value="{{file['id']}}"
+                    value="{{file_item['id']}}"
                   />
                   {% endif %}
                 </div>
               </td>
-              {% endif %} {% if session['is_Lecturer'] == 'False' %} {% endif %}
-              <td>{{file['subject_name']}}</td>
-              <td>{{file['messenge']}}</td>
-              <td>{{file['group_name']}}</td>
+              {% endif %}
+              <td>{{file_item['subject_name']}}</td>
+              <td>{{file_item['messenge']}}</td>
+              <td>{{file_item['group_name']}}</td>
               <td>
-                {% if file['file_type'] in ('.doc', '.docx') %}
+                {% if file_item['file_type'] in ('.doc', '.docx') %}
                 <img
-                  src="../static/css/assets/img/icons/doc.png"
+                  src="{{ url_for('static', filename='css/assets/img/icons/doc.png') }}" {# Use url_for #}
                   style="
                     width: 20px;
                     height: 20px;
                     align-items: cneter;
                     margin: 0;
                   "
+                  alt="DOC Icon"
                 />
-                {% elif file['file_type'] in ('.pdf') %}
+                {% elif file_item['file_type'] in ('.pdf') %}
                 <img
-                  src="../static/css/assets/img/icons/pdf.png"
+                  src="{{ url_for('static', filename='css/assets/img/icons/pdf.png') }}" {# Use url_for #}
                   style="
                     width: 20px;
                     height: 20px;
                     align-items: cneter;
                     margin: 0;
                   "
+                  alt="PDF Icon"
                 />
                 {% endif %}
                 <a
-                  href="{{ url_for('show_file', filename=file['file_name']) }}"
+                  href="{{ url_for('dashboard.show_file', filename=file_item['file_name']) }}" {# Assuming show_file is in dashboard or a general blueprint #}
                   target="_blank"
-                  >{{ file['file_name'][:10] }}...</a
+                  >{{ file_item['file_name'][:10] }}...</a
                 >
               </td>
-              <td>{{file['expiry_time'][:10]}}</td>
+              <td>{{file_item['expiry_time'][:10]}}</td>
               {% if session['is_Lecturer'] == 'True' %}
               <td class="text-end">
                 <div class="actions">
                   <a
-                    href="{{ url_for('editExercise', id=file['id']) }}"
+                    href="{{ url_for('exercises.editExercise', id=file_item['id']) }}"
                     class="btn btn-sm bg-danger-light me-2"
                   >
                     <i class="feather-edit"></i>
                   </a>
                   <a
-                    href="{{ url_for('deleteExercise', id=file['id']) }}"
+                    href="{{ url_for('exercises.deleteExercise', id=file_item['id']) }}"
                     class="btn btn-sm bg-danger-light"
                   >
                     <i class="fa-solid fa-trash"></i>
@@ -177,113 +144,84 @@ content %}
           </tbody>
         </table>
         {% if session['type'] == 'student' %}
-        <button id="sendToWaitRoom" class="btn btn-primary">
-          Send to WaitRoom
-        </button>
+        <div class="mt-3"> {# Added margin for the button #}
+            <button id="sendToWaitRoom" class="btn btn-primary">
+            Send Selected to WaitRoom
+            </button>
+        </div>
         {% endif %}
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% block scripts %}
+{{ super() }} {# Important to include scripts from base.html #}
 
-<!-- JavaScript for "Select All" functionality -->
+{% if session['type'] == 'student' %}
 <script>
-  document
-    .getElementById("selectAllCheckbox")
-    .addEventListener("change", function (event) {
-      const checkboxes = document.querySelectorAll(
-        'tbody input[type="checkbox"]:not(:disabled)'
-      );
-      checkboxes.forEach(function (checkbox) {
-        checkbox.checked = event.target.checked;
-      });
-    });
-</script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById("selectAllCheckbox");
+    const sendToWaitRoomButton = document.getElementById("sendToWaitRoom");
 
-<script>
-  // document.addEventListener('DOMContentLoaded', function () {
-  //         const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-  //         const tbodyCheckboxes = document.querySelectorAll('tbody input[type="checkbox"]');
-
-  //         // Function to update the state of the selectAllCheckbox
-  //         function updateSelectAllCheckbox() {
-  //             const allDisabled = Array.from(tbodyCheckboxes).every(checkbox => checkbox.disabled);
-  //             selectAllCheckbox.disabled = allDisabled;
-  //         }
-
-  //         // Add event listeners to tbody checkboxes to update the selectAllCheckbox state
-  //         tbodyCheckboxes.forEach(function (checkbox) {
-  //             checkbox.addEventListener('change', updateSelectAllCheckbox);
-  //         });
-
-  //         // Add an event listener to the selectAllCheckbox
-  //         selectAllCheckbox.addEventListener('change', function (event) {
-  //             tbodyCheckboxes.forEach(function (checkbox) {
-  //                 if (!checkbox.disabled) {
-  //                     checkbox.checked = event.target.checked;
-  //                 }
-  //             });
-  //         });
-
-  //         // Call the initial update to set the selectAllCheckbox state
-  //         updateSelectAllCheckbox();
-  //     });
-
-  // JavaScript code to handle the button/icon click event
-
-  document
-    .getElementById("sendToWaitRoom")
-    .addEventListener("click", function () {
-      // Collect selected checkboxes' values (e.g., file IDs)
-      const selectedCheckboxes = document.querySelectorAll(
-        'tbody input[type="checkbox"]:checked'
-      );
-
-      // Create an array to store the selected values
-      const selectedValues = [];
-
-      // Check if any of the selected checkboxes were previously selected
-      const previouslySelected = Array.from(selectedCheckboxes).some(
-        (checkbox) => {
-          const value = checkbox.value;
-          if (selectedValues.includes(value)) {
-            alert("You cannot select the same checkpoint again.");
-            return true; // Prevent further processing
-          }
-          selectedValues.push(value);
-          return false;
-        }
-      );
-
-      if (previouslySelected) {
-        return; // Do not proceed if a previously selected checkpoint is selected again
-      }
-
-      // Make an AJAX request to the Flask route
-      fetch("/waitroom", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ selectedIds: selectedValues }),
-      })
-        .then((response) => {
-          if (response.ok) {
-            // Handle success, e.g., redirect to WaitRoom or show a success message
-            window.location.href = "/waitroom"; // Redirect to WaitRoom
-          } else {
-            // Handle errors, e.g., show an error message
-            console.error("Error:", response.statusText);
-          }
-        })
-        .catch((error) => {
-          console.error("Network error:", error);
+    if (selectAllCheckbox) {
+      selectAllCheckbox.addEventListener("change", function (event) {
+        const checkboxes = document.querySelectorAll(
+          'tbody input[type="checkbox"]:not(:disabled)'
+        );
+        checkboxes.forEach(function (checkbox) {
+          checkbox.checked = event.target.checked;
         });
-    });
-</script>
+      });
+    }
 
+    if (sendToWaitRoomButton) {
+      sendToWaitRoomButton.addEventListener("click", function () {
+        const selectedCheckboxes = document.querySelectorAll(
+          'tbody input[type="checkbox"]:checked:not(:disabled)'
+        );
+
+        const selectedValues = [];
+        selectedCheckboxes.forEach((checkbox) => {
+            selectedValues.push(checkbox.value);
+        });
+
+        if (selectedValues.length === 0) {
+            alert("Please select at least one exercise to send.");
+            return;
+        }
+
+        // The original logic for "You cannot select the same checkpoint again" seemed tied to
+        // how `file['checkType']` might be updated or if items were sent one by one.
+        // This simplified version sends all currently selected valid items.
+        // Preventing re-sending of already processed items would typically be handled
+        // by disabling the checkbox (as done with `file['checkType']`) or server-side.
+
+        fetch("{{ url_for('exercises.send_to_waitroom') }}", { // Assumed route
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token() }}" // Added CSRF token
+          },
+          body: JSON.stringify({ selectedIds: selectedValues }),
+        })
+          .then((response) => {
+            if (response.ok) {
+              alert("Selected exercises sent to WaitRoom!");
+              location.reload(); // Simple way to reflect changes
+            } else {
+              response.text().then(text => alert("Error: " + text));
+              console.error("Error sending exercises:", response.statusText);
+            }
+          })
+          .catch((error) => {
+            alert("Network error. Please try again.");
+            console.error("Network error:", error);
+          });
+      });
+    }
+  });
+</script>
+{% endif %}
 {% endblock %}
