@@ -1,123 +1,85 @@
 # Faculty Management System
 
-A comprehensive web application for managing faculty information, including students, teachers, courses, and more.
+**🚀 For comprehensive and detailed documentation, please visit our new [Documentation Hub](./docs/README.md)! 🚀**
 
-## Project Structure
+A comprehensive web application for managing faculty information, including students, teachers, courses, and more. This system is designed to streamline communication and administrative tasks within an educational department.
 
-The project follows a modular Flask application structure:
+## Overview
 
-```
-flask_app/
-├── app/
-│   ├── __init__.py                 # Application factory
-│   ├── config.py                   # Configuration settings
-│   ├── models/                     # Database models
-│   ├── routes/                     # Route definitions
-│   ├── services/                   # Business logic
-│   ├── controllers/                # Request/response handling
-│   ├── static/                     # Static assets
-│   ├── templates/                  # HTML templates
-│   ├── utils/                      # Utility functions
-│   └── extensions.py               # Flask extensions initialization
-├── migrations/                     # Database migrations
-├── tests/                          # Test files
-├── .env                            # Environment variables
-├── .env.example                    # Example environment variables
-├── .gitignore                      # Git ignore file
-├── requirements.txt                # Project dependencies
-├── run.py                          # Application entry point
-└── README.md                       # Project documentation
-```
+The Faculty Management System (FMS) provides a robust platform with features like:
 
-## Features
+*   User authentication and role-based access control (Admin, Lecturer, Student)
+*   Management of Students, Teachers, Subjects, and Exercises
+*   News publication and file handling
+*   A "Waiting Room" feature for lecturers to review submissions
+*   (Conceptual) Chatbot integration
 
-- User authentication and role-based access control
-- Student management
-- Teacher management
-- Course/Subject management
-- Exercise assignments
-- News publication
-- Activity tracking and reporting
-- File uploads and downloads
-- Chatbot integration
+For a full list and detailed explanations of features, please see the [Features & Functionality section in our docs](./docs/04_features.md).
 
 ## Getting Started
 
-### Prerequisites
+While the quick setup steps below are provided, we **highly recommend** following the detailed [**Getting Started Guide in our documentation**](./docs/01_getting_started.md) for comprehensive setup instructions, prerequisites, and important notes (especially regarding static assets).
 
-- Python 3.8 or higher
-- SQLite
+### Basic Prerequisites
 
-### Installation
+*   Python 3.8 or higher
+*   Git
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/Edmon02/faculty-management-system.git
-   cd faculty-management-system
-   ```
+### Quick Installation & Setup
 
-2. Create a virtual environment and activate it:
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/Edmon02/faculty-management-system.git
+    cd faculty-management-system
+    ```
 
-3. Install the dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+2.  **Create and activate a virtual environment:**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
 
-4. Create a `.env` file based on `.env.example`:
-   ```
-   cp .env.example .env
-   ```
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-5. Run the application:
-   ```
-   flask run
-   ```
-   
-   Or use the run script:
-   ```
-   python run.py
-   ```
+4.  **(Optional) Create `.env` file:**
+    Based on `.env.example` (if present) or for custom settings. See `docs/05_configuration.md`. For basic SQLite development, defaults may suffice.
+
+5.  **Run the application:**
+    ```bash
+    python run.py
+    ```
+    The application should be available at `http://127.0.0.1:5000/`.
+
+    **⚠️ Important Note on Static Assets:** For the application to render correctly with all styling and frontend features, static assets (CSS, JS, images for the theme, and React build artifacts) are required. These appear to be missing from the main repository. Please refer to the "Important Note on Static Assets" in the [full Getting Started guide](./docs/01_getting_started.md#important-note-on-static-assets) for more details.
+
+## Project Structure
+
+The project follows a modular Flask application structure. For a detailed breakdown, please see the [Architecture documentation](./docs/02_architecture.md#directory-structure).
 
 ## Development
 
-### Database Setup
-
-The application uses SQLite as its database. The database file is created automatically when the application is run for the first time.
-
-### Testing
-
-Run tests with pytest:
-```
-pytest
-```
-
-### Code Quality
-
-Ensure your code adheres to PEP 8 standards by running flake8:
-```
-flake8
-```
+*   **Database:** Uses SQLite by default for development (auto-created).
+*   **Testing:** Run tests with `pytest`. See [Testing & Validation Guide](./docs/06_testing.md).
+*   **Code Quality:** Check PEP 8 standards with `flake8`.
 
 ## Default User Accounts
 
-For testing purposes, the following accounts are available:
+For testing purposes, the following accounts are available (also listed in `docs/01_getting_started.md`):
 
-- Admin:
-  - Username: fYRKVPTdzT
-  - Password: 03611557
+*   **Admin:** Username: `fYRKVPTdzT`, Password: `03611557`
+*   **Lecturer:** Username: `fYRKVPTdzm`, Password: `71319352`
+*   **Student:** Username: `ElwAiWgAZg`, Password: `03611558`
 
-- Lecturer:
-  - Username: fYRKVPTdzm
-  - Password: 71319352
+## Contributing
 
-- Student:
-  - Username: ElwAiWgAZg
-  - Password: 03611558
+We welcome contributions! Please see our detailed [**Contributing Guide**](./docs/08_contributing.md) for information on workflow, code standards, and how to help.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+---
+**Dive deeper! Explore the full [Faculty Management System Documentation](./docs/README.md).**
