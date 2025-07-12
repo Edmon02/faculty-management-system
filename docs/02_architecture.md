@@ -45,42 +45,40 @@ Let's trace the journey of a user's request:
 
 ```mermaid
 graph LR
-    UserBrowser[User's Browser]
+    UserBrowser["User's Browser"]
 
-    subgraph FMS_System [Faculty Management System]
-        FlaskServer[Flask Web Server]
+    subgraph FMS_System["Faculty Management System"]
+        FlaskServer["Flask Web Server"]
 
-        subgraph Public_Access [Public Access Layer]
-            direction LR
-            ReactHTML[index.html for React App]
-            ReactAssets[Static React Assets (JS/CSS)]
-            FlaskServer -- Serves HTML --> ReactHTML
-            ReactHTML -- Loads --> ReactAssets
+        subgraph Public_Access["Public Access Layer"]
+            ReactHTML["index.html for React App"]
+            ReactAssets["Static React Assets (JS/CSS)"]
+            FlaskServer -->|Serves HTML| ReactHTML
+            ReactHTML -->|Loads| ReactAssets
         end
 
-        ReactAssets -- Renders in --> UserBrowser
-        UserBrowser -- HTTP Request --> FlaskServer
-        ReactAssets -- Optional API Calls --> FlaskServer
+        ReactAssets -->|Renders in| UserBrowser
+        UserBrowser -->|HTTP Request| FlaskServer
+        ReactAssets -.->|Optional API Calls| FlaskServer
 
-        subgraph Authenticated_App_Core [Authenticated Application Core]
-            direction TB
-            Routes[Flask Routes / Blueprints]
-            Controllers[Controller Layer]
-            Services[Service Layer (Business Logic)]
-            Models[SQLAlchemy Models (Data Access)]
-            Database[(Database - e.g., SQLite)]
-            JinjaTemplates[Jinja2 Templates]
+        subgraph Authenticated_App_Core["Authenticated Application Core"]
+            Routes["Flask Routes / Blueprints"]
+            Controllers["Controller Layer"]
+            Services["Service Layer (Business Logic)"]
+            Models["SQLAlchemy Models (Data Access)"]
+            Database[("Database - e.g., SQLite")]
+            JinjaTemplates["Jinja2 Templates"]
 
-            FlaskServer -- Request --> Routes
-            Routes -- Invoke --> Controllers
-            Controllers -- Use --> Services
-            Services -- Interact --> Models
-            Models -- CRUD --> Database
-            Services -- Return Data --> Controllers
-            Controllers -- Pass Data --> JinjaTemplates
-            JinjaTemplates -- Render HTML --> FlaskServer
+            FlaskServer -->|Request| Routes
+            Routes -->|Invoke| Controllers
+            Controllers -->|Use| Services
+            Services -->|Interact| Models
+            Models -->|CRUD| Database
+            Services -->|Return Data| Controllers
+            Controllers -->|Pass Data| JinjaTemplates
+            JinjaTemplates -->|Render HTML| FlaskServer
         end
-        FlaskServer -- Serves HTML --> UserBrowser
+        FlaskServer -->|Serves HTML| UserBrowser
     end
 
     style Public_Access fill:#e6f3ff,stroke:#b3d9ff,color:#333
